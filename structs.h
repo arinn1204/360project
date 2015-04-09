@@ -1,3 +1,6 @@
+#ifndef STRUCTS_H
+#define STRUCTS_H
+
 #define BLKSIZE 1024
 
 //Block Numbers for EXT2
@@ -85,3 +88,5 @@ char **names; //array of strings for the whole path
 //int name[64]; 		//array of pointers to the address of the strings
 int nameCount = -1;		//number of items in the arrays
 int inodeTable = -1;
+
+#endif

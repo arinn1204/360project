@@ -1,3 +1,6 @@
+#ifndef BINARY_H
+#define BINARY_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -53,3 +56,6 @@ int menu(char *name) {
 }
 
 int (*func[10]) (char *name); 
+
+
+#endif

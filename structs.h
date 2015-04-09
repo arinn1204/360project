@@ -87,6 +87,6 @@ MINODE minode[NMINODES];
 char **names; //array of strings for the whole path
 //int name[64]; 		//array of pointers to the address of the strings
 int nameCount = -1;		//number of items in the arrays
-int inodeTable = -1;
+int inodeTable = -1, imap = 0, bmap = 0, ninodes = 0, nblocks = 0;
 
 #endif

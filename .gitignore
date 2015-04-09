@@ -1,0 +1,10 @@
+# ignore everything
+*
+
+# Don't ignore .c or .h files
+!*.c
+!*.h
+
+# Don't ignore README or .gitignore
+!README.md
+!.gitignore

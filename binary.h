@@ -12,6 +12,11 @@
 
 
 int init(char *name) {
+	//initialize everything
+	//initialize ninodes = sp_inodes_count
+	//initialize nblocks = sp_blocks_count
+	//init imap = bg_inode_bmap
+	//init bmap = bg_block_bmap
 
 }
 

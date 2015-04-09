@@ -1,3 +1,6 @@
+#ifndef UTIL_H
+#define UTIL_H
+
 #include "structs.h"
 
 
@@ -157,3 +160,5 @@ int findino(MINODE *mip, int *myino, int *parentino) {
 	myino = (int *)buf;
 	parentino = myino + 1;
 }
+
+#endif

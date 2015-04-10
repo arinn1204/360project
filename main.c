@@ -5,7 +5,14 @@ int main(int argc, char *argv[], char *env[]) {
 	int op;
 	char line[128];
 
+	P0 = (PROC *)calloc(sizeof(PROC *) + 1, 1);
+	P1 = (PROC *)calloc(sizeof(PROC *) + 1, 1);
+	running = (PROC *)calloc(sizeof(PROC *) + 1, 1);
 
+	if (argc < 2) {
+		fprintf(stderr, "Need to enter disk name\n");
+		exit(-1);
+	}
 
 	//initialize the table of function pointers
 	func[0] = mount_root;
@@ -21,7 +28,7 @@ int main(int argc, char *argv[], char *env[]) {
 	func[10] = init;
 
 	(*func[10]) (0);		//initialize the FS
-	//(*func[0]) (0);
+	(*func[0]) (argv[1]);
 
 
 	while(1) {
@@ -44,6 +51,8 @@ int main(int argc, char *argv[], char *env[]) {
 		(*func[op]) (line);
 
 	}
+
+	free(P0); free(P1); free(running);
 
 
 	return 0;

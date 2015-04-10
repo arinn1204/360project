@@ -29,32 +29,32 @@ int clr_bit(char *buf, int bit) {
 int decFreeInodes(int dev) {
 	char buf[BLKSIZE];
 
-	getblock(dev, 1, buf);
+	getblock(dev, SUPERBLOCK, buf);
 	sp = (SUPER *)buf;
 	sp->s_free_inodes_count--;
-	putblock(dev, 1, buf);
+	putblock(dev, SUPERBLOCK, buf);
 
-	getblock(dev, 2, buf);
+	getblock(dev, GDBLOCK, buf);
 	gp = (GD *)buf;
 
 	gp->bg_free_inodes_count--;
-	putblock(dev, 2, buf);
+	putblock(dev, GDBLOCK, buf);
 
 }
 
 int decFreeBlocks(int dev) {
 	char buf[BLKSIZE];
 
-	getblock(dev, 1, buf);
+	getblock(dev, SUPERBLOCK, buf);
 	sp = (SUPER *)buf;
 	sp->s_free_blocks_count--;
-	putblock(dev, 1, buf);
+	putblock(dev, SUPERBLOCK, buf);
 
-	getblock(dev, 2, buf);
+	getblock(dev, GDBLOCK, buf);
 	gp = (GD *)buf;
 
 	gp->bg_free_blocks_count--;
-	putblock(dev, 2, buf);
+	putblock(dev, GDBLOCK, buf);
 }
 
 //this will allocate a new inode
@@ -64,7 +64,7 @@ int ialloc(int dev) {
 
 	getblock(dev, imap, buf);
 
-	for (i = 0; i < ninodes) {
+	for (i = 0; i < ninodes; i++) {
 		if(test_bit(buf, i) == 0) {
 			set_bit(buf, i);
 			decFreeInodes(dev);
@@ -82,16 +82,46 @@ int ialloc(int dev) {
 
 //this will allocate a new block inside a current inode
 int balloc(int dev) {
+	int i;
+	char buf[BLKSIZE];
+
+	getblock(dev, bmap, buf);
+
+	for (i = 0; i < nblocks; i++) {
+		if(test_bit(buf, i) == 0) {
+			set_bit(buf, i);
+			decFreeBlocks(dev);
+
+			putblock(dev, bmap, buf);
+		}
+	}
 
 }
 
-//this will deallocate an INODE that is ino
+//this will deallocate an INODE, ino
 int idealloc(int dev, int ino) {
+	char buf[BLKSIZE];
+
+	getblock(dev, imap, buf);
+
+	clr_bit(buf, ino);
+	decFreeInodes(dev);
+
+	putblock(dev, imap, buf);
+
 
 }
 
-//this will deallocate a BLOCK with block number bno
+//this will deallocate a BLOCK, bno
 int iballoc(int dev, int bno) {
+	char buf[BLKSIZE];
+
+	getblock(dev, bmap, buf);
+
+	clr_bit(buf, bno);
+	decFreeBlocks(dev);
+
+	putblock(dev, bmap, buf);
 
 }
 

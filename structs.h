@@ -81,12 +81,29 @@ typedef struct minode MINODE;
 typedef struct oft OFT;
 typedef struct mount MOUNT;
 
-MINODE minode[NMINODES];
+
+//The MINODE structures
+MINODE minode[NMINODES], *root, *mip;
 
 
 char **names; //array of strings for the whole path
 //int name[64]; 		//array of pointers to the address of the strings
 int nameCount = -1;		//number of items in the arrays
+/*
+	inodeTable  = The inode start block
+	imap 	    = shows all of the inodes in the FS
+	bmap		= shows all of the blocks in the FS
+	ninodes     = Number of inodes available
+	nblocks		= Number of blocks available
+
+*/
 int inodeTable = -1, imap = 0, bmap = 0, ninodes = 0, nblocks = 0;
+
+//This is for the descriptor
+int fd;
+
+
+//The three processes that will be running
+PROC *P0, *P1, *running;
 
 #endif

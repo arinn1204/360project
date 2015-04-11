@@ -80,7 +80,13 @@ int mount_root(char *name) {
 }
 
 int _ls(char *name) {
-
+	if(name[0] == '/') {
+		//absolute path
+		printf("Absolute path\n");
+	}
+	else {
+		printf("Relative Path\n");
+	}
 
 }
 
@@ -89,6 +95,7 @@ int _cd(char *name) {
 }
 
 int _pwd(char *name) {
+
 
 }
 
@@ -111,11 +118,38 @@ int _unlink(char *name) {
 
 }
 
-int menu(char *name) {
-	printf("[ls][cd][pwd][mkdir][create][rmdir][link][unlink][menu] ");
+int _rm(char *fullname) {
+
+}
+int _symlink(char *source, char *dest) {
+
 }
 
-int (*func[10]) (char *name); 
+int _chmod(char *name, int permission) {
 
+}
+
+int _chown(char *name, char *group) {
+
+}
+
+int _stat(char *file) {
+
+}
+
+int _touch(char *Filename) {
+
+}
+
+int menu(char *name) {
+	printf("[ls][cd][pwd][mkdir][create][rmdir][link][unlink] ");
+}
+
+int quit(char *name) {
+	exit(-1);
+}
+
+int (*func[32]) (char *name, ...) = {init, mount_root, _ls, _cd, _pwd, _mkdir, _create, _rmdir, _link, _unlink, _rm, _symlink,
+									_chmod, _chown, _stat, _touch, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,quit, menu};
 
 #endif

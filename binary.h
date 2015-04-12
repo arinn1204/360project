@@ -1,12 +1,18 @@
 #ifndef BINARY_H
 #define BINARY_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <fcntl.h>
-#include <ext2fs/ext2_fs.h>
 #include "util.h"
+
+
+int destruct() {
+	free(P0->next);
+	free(P1->next);
+	free(running->next);
+
+	free(P0);
+	free(P1);
+	free(running);
+}
 
 
 //initialize everything
@@ -14,6 +20,12 @@
 int init(char *name) {
 	int i;
 	char buf[BLKSIZE];
+
+	P0 = (PROC *)malloc( sizeof(PROC) );
+	P1 = (PROC *)malloc( sizeof(PROC) );
+	running = (PROC *)malloc( sizeof(PROC) );
+
+
 	for (i = 0; i < NMINODES; i++) {
 		minode[i].refcount = 0;
 		minode[i].dev = 0;
@@ -29,6 +41,9 @@ int init(char *name) {
 		running->fd[i] = 0;
 	}
 
+	P0->next = (PROC *)malloc( sizeof(PROC *) );
+	P1->next = (PROC *)malloc( sizeof(PROC *) );
+	running->next = (PROC *)malloc( sizeof(PROC *) );
 
 	P0->next = P1;
 	P1->next = P0;
@@ -79,14 +94,58 @@ int mount_root(char *name) {
 
 }
 
+int list_file(MINODE *mip, char *name) {
+	char *t1 = "xwrxwrxwr";
+	char *t2 = "---------";
+	char ftime[64];
+
+	int i;
+
+	ip = mip->inode;
+
+	if((ip->i_mode & 0xF000) == 0x4000) printf("d");
+	if((ip->i_mode & 0xF000) == 0x8000)	printf("-");
+	if((ip->i_mode & 0xF000) == 0xA000) printf("l");
+
+	for (i = 8; i >= 0; i--) {
+		if(ip->i_mode & (1 << i))
+			printf("%c", t1[i]);
+		else
+			printf("%c", t2[i]);
+	}
+
+	printf(" %d", ip->i_links_count);
+	printf(" %d", ip->i_uid);
+	printf(" %d", ip->i_gid);
+	printf(" %d", ip->i_size);
+	//strcpy(ftime, (char*)ctime( ip->i_ctime ) );
+	printf(" %s", ip->i_ctime);
+	printf(" %s", name);
+	if ((ip->i_mode & 0xF000) == 0xA000) {
+		printf(" -> %s", (char *)ip->i_block);
+	}
+	printf("\n");
+
+}
+
+int list_dir(MINODE *mip) {
+	struct dirent *foo;
+	MINODE *cip;
+	ip = mip->inode;
+
+
+}
+
 int _ls(char *name) {
-	if(name[0] == '/') {
-		//absolute path
-		printf("Absolute path\n");
-	}
-	else {
-		printf("Relative Path\n");
-	}
+   int ino = getino(fd, name);
+   MINODE *mip = iget(fd,ino);
+
+   if ((mip->inode->i_mode & 0xF000) == 0x8000)
+      list_file(mip, basename(name));
+   else
+      list_dir(mip);
+
+   iput(mip);
 
 }
 
@@ -121,15 +180,15 @@ int _unlink(char *name) {
 int _rm(char *fullname) {
 
 }
-int _symlink(char *source, char *dest) {
+int _symlink(char *source) {
 
 }
 
-int _chmod(char *name, int permission) {
+int _chmod(char *name) {
 
 }
 
-int _chown(char *name, char *group) {
+int _chown(char *name) {
 
 }
 
@@ -137,7 +196,7 @@ int _stat(char *file) {
 
 }
 
-int _touch(char *Filename) {
+int _touch(char *filename) {
 
 }
 
@@ -149,7 +208,7 @@ int quit(char *name) {
 	exit(-1);
 }
 
-int (*func[32]) (char *name, ...) = {init, mount_root, _ls, _cd, _pwd, _mkdir, _create, _rmdir, _link, _unlink, _rm, _symlink,
+int (*func[32]) (char *name) = {init, mount_root, _ls, _cd, _pwd, _mkdir, _create, _rmdir, _link, _unlink, _rm, _symlink,
 									_chmod, _chown, _stat, _touch, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,quit, menu};
 
 #endif

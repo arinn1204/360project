@@ -27,6 +27,14 @@
 #define NOFT		100
 
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <fcntl.h>
+#include <ext2fs/ext2_fs.h>
+#include <libgen.h>
+
+
 
 typedef struct ext2_group_desc GD;
 typedef struct ext2_super_block SUPER;
@@ -83,7 +91,7 @@ typedef struct mount MOUNT;
 
 
 //The MINODE structures
-MINODE minode[NMINODES], *root, *mip;
+MINODE minode[NMINODES], *root;
 
 
 char **names; //array of strings for the whole path
@@ -105,5 +113,8 @@ int fd;
 
 //The three processes that will be running
 PROC *P0, *P1, *running;
+
+
+char pathname[64], parameter[64], cmd[32];
 
 #endif

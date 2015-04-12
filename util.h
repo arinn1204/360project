@@ -2,7 +2,7 @@
 #define UTIL_H
 
 #include "structs.h"
-
+#include "dealloc.h"
 
 int getblock(int dev, int block, char buf[]) {
 	lseek(dev, (long)block*BLKSIZE, 0);
@@ -15,14 +15,20 @@ int putblock(int dev, int block, char buf[]) {
 }
 
 char *tokenize(char *pathname, char *delim) {
-	int len = strlen(pathname);
+	int len = -1;
 	int i, count = 0;
 	char *token;
+
+	if(pathname[0] == 0) return;
+	len = strlen(pathname);
 	char *temp = calloc((len + 1), 1);
-	
+
+
 	strcpy(temp, pathname);
+
 	for (i=0;i<len;i++) if (temp[i] == *delim) count++;
-	nameCount = count;
+	nameCount = count + 1;
+	if(count == 0) return;
 	
 	names = calloc(count + 1, 1);
 	i=0;
@@ -63,12 +69,13 @@ int search(MINODE *mip, char *name, int dev) {
 }
 
 int getino(int dev, char *pathname) {
-	MINODE *mp;
+	MINODE *mp = (MINODE *)malloc( sizeof(MINODE) );
+	mp->inode = (INODE *)malloc( sizeof(INODE) );
 	int i, inumber;
 	char buf[BLKSIZE];
 	getblock(dev, 2, buf);
 	gp = (GD *)buf;
-	inodeTable = gp->bg_inode_table;
+	//inodeTable = gp->bg_inode_table;
 	getblock(dev, inodeTable, buf);
 
 	tokenize(pathname, "/");
@@ -81,7 +88,7 @@ int getino(int dev, char *pathname) {
 		getblock(dev, (inumber-1)/8+inodeTable, buf);
 		mp->inode = (INODE *)buf + (inumber-1)%8;
 	} //end of for loop
-
+	free(mp);
 	return inumber;
 }
 

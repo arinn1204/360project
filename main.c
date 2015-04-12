@@ -1,46 +1,7 @@
 #include "binary.h"
 
 void initFunction(char *argv[]) {
-/*	//Part one
-	func[0] = init;
-	func[1] = mount_root;
-	func[2] = _ls;
-	func[3] = _cd;
-	func[4] = _pwd;
-	func[5] = _mkdir;
-	func[6] = _create;
-	func[7] = _rmdir;
-	func[8] = _link;
-	func[9] = _unlink;
-	func[10] = _rm;
-	func[11] = _symlink;
-	func[12] = _chmod;
-	func[13] = _chown;
-	func[14] = _stat;
-	func[15] = _touch;
-	func[30] = quit;
-	func[31] = menu;
-	//Part Two
 
-	/*func[16] = _open;
-	func[17] = _close;
-	func[18] = _pfd;
-	func[19] = _lseek;
-	func[20] = _access;
-	func[21] = _read;
-	func[22] = _write;
-	func[23] = _cat;
-	func[24] = _cp;
-	func[25] = _mv;
-
-	//Part Three	
-	func[26] = _mount;
-	func[27] = _umount;
-	func[28] = cs;
-	func[29] = sync;
-	func[30] = quit;
-	/*/
-	
 	(*func[0]) (0);		//initialize the FS
 	(*func[1]) (argv[1]);
 }
@@ -60,7 +21,10 @@ int findCMD(char *command) {
 		else if (!strncmp(command, "chmod", 5))			op = 12;
 		else if (!strncmp(command, "chown", 5))			op = 13;
 		else if (!strncmp(command, "stat", 4))			op = 14;
-		else if (!strncmp(command, "touch", 5))			op = 15; /*
+		else if (!strncmp(command, "touch", 5))			op = 15; 
+		else if (!strncmp(command, "quit", 4))			op = 30;
+		else if (!strncmp(command, "menu", 4))			op = 31;
+		/*
 		else if (!strncmp(command, "unlink", 6))		op = 9;
 		else if (!strncmp(command, "unlink", 6))		op = 9;
 		else if (!strncmp(command, "unlink", 6))		op = 9;
@@ -79,17 +43,9 @@ int findCMD(char *command) {
 	return op;
 }
 
-
-
-char pathname[64], parameter[64], cmd[32];
-
 int main(int argc, char *argv[], char *env[]) {
 	int op;
 	char line[128];
-
-	P0 = (PROC *)calloc(sizeof(PROC *) + 1, 1);
-	P1 = (PROC *)calloc(sizeof(PROC *) + 1, 1);
-	running = (PROC *)calloc(sizeof(PROC *) + 1, 1);
 
 	if (argc < 2) {
 		fprintf(stderr, "Need to enter disk name\n");
@@ -97,12 +53,12 @@ int main(int argc, char *argv[], char *env[]) {
 	}
 
 	//initialize the table of function pointers
-	//initFunction(argv);
+	initFunction(argv);
 
 
 	while(1) {
 		printf("Enter command: ");
-		(*func[9]) (0);
+		//(*func[31]) (0);
 		fgets(line, 128, stdin);
 		line[strlen(line) - 1] = 0;
 		if (line[0] == 0) {
@@ -110,17 +66,21 @@ int main(int argc, char *argv[], char *env[]) {
 			continue;
 		}
 
-		sscanf(line, "%s %s %64c", cmd, pathname, parameter);
+		sscanf(line, "%s %s %s", cmd, pathname, parameter);
+		//printf("cmd: %s, pathname: %s, parameter: %s\n", cmd, pathname, parameter);
 
-
+		op=findCMD(cmd);
 
 		
-		(*func[op]) (line);
+		(*func[op]) (pathname);
 		printf("\n");
+		bzero(cmd, 32);
+		bzero(parameter, 64);
+		bzero(pathname, 64);
 
 	}
 
-	free(P0); free(P1); free(running);
+	destruct();
 
 
 	return 0;

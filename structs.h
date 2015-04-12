@@ -9,10 +9,14 @@
 #define ROOT_INODE 	2
 
 //Dir and Reg file modes
-#define DIR_MODE 	0040777
-#define FILE_MODE	0100644
 #define SUPER_MAGIC 0xEF53
 #define SUPER_USER  0
+
+
+//Macros to determine: Directory, File, or symlink
+#define DIR_MODE(z) (z & 0xF000) == 0x4000
+#define FILE_MODE(z) (z & 0xF000) == 0x8000
+#define LINK(z) (z & 0xF000) == 0xA000
 
 //Proc Status
 #define FREE 	0

@@ -19,7 +19,10 @@ char *tokenize(char *pathname, char *delim) {
 	int i, count = 0;
 	char *token;
 
-	if(pathname[0] == 0) return;
+	if(pathname[0] == 0) {
+		nameCount = 1;
+		return;
+	}
 	len = strlen(pathname);
 	char *temp = calloc((len + 1), 1);
 
@@ -28,9 +31,15 @@ char *tokenize(char *pathname, char *delim) {
 
 	for (i=0;i<len;i++) if (temp[i] == *delim) count++;
 	nameCount = count + 1;
-	if(count == 0) return;
 	
-	names = calloc(count + 1, 1);
+	if(count == 0) {
+		names = calloc(2, 1);
+		names[0] = calloc(strlen(pathname) + 1, 1);
+		strcpy(*names, pathname);
+		return;
+	};
+
+	names = calloc(nameCount + 1, 1);
 	i=0;
 	token = strtok(temp, delim);
 	while(token != NULL) {
@@ -73,9 +82,6 @@ int getino(int dev, char *pathname) {
 	mp->inode = (INODE *)malloc( sizeof(INODE) );
 	int i, inumber;
 	char buf[BLKSIZE];
-	getblock(dev, 2, buf);
-	gp = (GD *)buf;
-	//inodeTable = gp->bg_inode_table;
 	getblock(dev, inodeTable, buf);
 
 	tokenize(pathname, "/");
@@ -132,10 +138,13 @@ int iput(MINODE *mip) {
 
 }
 
-int findmyname(MINODE *parent, int myino, char *mynode) {
+char *findmyname(MINODE *parent, int myino) {
 	char buf[BLKSIZE], c;
 	char *cp = buf;
 	int i;
+	if(myino == 2) {
+		return "/";
+	}
 	for (i = 0; i < 12; i++) {
 		if(parent->inode->i_block[i] != 0) {
 			getblock(parent->dev, parent->inode->i_block[i], buf);
@@ -144,9 +153,7 @@ int findmyname(MINODE *parent, int myino, char *mynode) {
 				c = dp->name[dp->name_len];
 				dp->name[dp->name_len] = 0;
 				if(dp->inode == myino) {
-					strcmp(mynode, dp->name);
-					dp->name[dp->name_len] = c;
-					return 0;
+					return dp->name;
 				}
 				else {
 					cp += dp->rec_len;
@@ -157,15 +164,33 @@ int findmyname(MINODE *parent, int myino, char *mynode) {
 		}
 	}
 
-	return -1;
+	return 0;
 
 }
 
+
+
 int findino(MINODE *mip, int *myino, int *parentino) {
-	char buf[BLKSIZE];
-	getblock(mip->dev, mip->inode->i_block[0], buf);
-	myino = (int *)buf;
-	parentino = myino + 1;
+	char buf[BLKSIZE], *cp;
+	
+	getblock(mip->dev, (mip->ino - 1)/8, buf);	
+	dp = (DIR *)buf;
+	cp = buf;
+
+	while(cp < buf + BLKSIZE) {
+		if(dp->name == ".") {
+			*myino = dp->inode;
+		}
+		if (dp->name == "..") {
+			*parentino = dp->inode;
+			break;
+		}
+		cp += dp->rec_len;
+		dp = (DIR *)cp;
+	}
+
+
+	return 0;
 }
 
 #endif

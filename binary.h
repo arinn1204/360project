@@ -9,6 +9,10 @@ int destruct() {
 	free(P1->next);
 	free(running->next);
 
+	free(P0->cwd);
+	free(P1->cwd);
+	free(running->cwd);
+
 	free(P0);
 	free(P1);
 	free(running);
@@ -49,6 +53,12 @@ int init(char *name) {
 	P1->next = P0;
 	running->next = P0;
 
+
+	P0->cwd = (MINODE *)malloc( sizeof(MINODE) );
+	P1->cwd = (MINODE *)malloc( sizeof(MINODE) );
+	running->cwd = (MINODE *)malloc( sizeof(MINODE) );
+
+
 	P0->cwd = 0;
 	P1->cwd = 0;
 	running->cwd = 0;
@@ -72,7 +82,7 @@ int mount_root(char *name) {
 	}
 	getblock(fd, SUPERBLOCK, buf);
 	sp = (SUPER *)buf;
-	if (sp->s_magic != 0xEF53) {
+	if (sp->s_magic != SUPER_MAGIC) {
 		fprintf(stderr, "Not EXT2! Exiting now.\n");
 		exit(-1);
 	}
@@ -91,6 +101,9 @@ int mount_root(char *name) {
 	P0->cwd = iget(fd, 2);
 	P1->cwd = iget(fd, 2);
 
+	//this sets the running process (PROC *) to P0
+	running = P0;
+
 
 }
 
@@ -103,9 +116,9 @@ int list_file(MINODE *mip, char *name) {
 
 	ip = mip->inode;
 
-	if((ip->i_mode & 0xF000) == 0x4000) printf("d");
-	if((ip->i_mode & 0xF000) == 0x8000)	printf("-");
-	if((ip->i_mode & 0xF000) == 0xA000) printf("l");
+	if(DIR_MODE(ip->i_mode))  printf("d");
+	if(FILE_MODE(ip->i_mode)) printf("-");
+	if(LINK(ip->i_mode)) printf("l");
 
 	for (i = 8; i >= 0; i--) {
 		if(ip->i_mode & (1 << i))
@@ -119,9 +132,9 @@ int list_file(MINODE *mip, char *name) {
 	printf(" %d", ip->i_gid);
 	printf(" %d", ip->i_size);
 	//strcpy(ftime, (char*)ctime( ip->i_ctime ) );
-	printf(" %s", ip->i_ctime);
+	//printf(" %s", ip->i_ctime);
 	printf(" %s", name);
-	if ((ip->i_mode & 0xF000) == 0xA000) {
+	if (LINK(ip->i_mode)) {
 		printf(" -> %s", (char *)ip->i_block);
 	}
 	printf("\n");
@@ -139,8 +152,9 @@ int list_dir(MINODE *mip) {
 int _ls(char *name) {
    int ino = getino(fd, name);
    MINODE *mip = iget(fd,ino);
+   ip = mip->inode;
 
-   if ((mip->inode->i_mode & 0xF000) == 0x8000)
+   if (FILE_MODE(ip->i_mode))
       list_file(mip, basename(name));
    else
       list_dir(mip);
@@ -150,12 +164,55 @@ int _ls(char *name) {
 }
 
 int _cd(char *name) {
+	int ino;
+	MINODE *mip;
+	char *path;
+	if(name[0] == 0) {
+		path = calloc(2,1);
+		strcpy(path, "/");
+		ino = 2;
+	}
+	else {
+		path = calloc(strlen(name) + 1, 1);
+		strcpy(path, name);
+		ino = getino(fd, path);
+		if (ino == 0) return -1;
+	}
+
+	mip = iget(fd, ino);
+
+	if (FILE_MODE(mip->inode->i_mode)) {
+		printf("%s is not a directory\n", path);
+		free(path);
+	}
+	else {
+		iput(running->cwd);
+		running->cwd = mip;
+		free(path);
+	}	
+	return 0;
+
 
 }
 
 int _pwd(char *name) {
+	char *cwd;
+	MINODE *mp;
+	int child, parent;
+	findino(running->cwd, &child, &parent);
+	mp = iget(running->cwd->dev, parent);
 
 
+
+	if(running->cwd == root) {
+		printf("/");
+		return 0;
+	}
+	cwd = findmyname(mp, running->cwd->ino);
+	if(cwd[0] == 0) return -1;
+	printf("%s", cwd);
+
+	return 0;
 }
 
 int _mkdir(char *name) {

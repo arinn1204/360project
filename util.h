@@ -26,14 +26,13 @@ char *tokenize(char *pathname, char *delim) {
 
 	strcpy(temp, pathname);
 
-	for (i=0;i<len;i++) if (temp[i] == *delim) count++;
+	for (i=1;i<len;i++) if (temp[i] == *delim) count++;
 	nameCount = count + 1;
-	if(pathname[0] == '/') nameCount--;
 	
 	if(count == 0) {
 		names = calloc(2, 1);
-		names[0] = calloc(strlen(pathname) + 1, 1);
-		strcpy(*names, pathname);
+		names[0] = calloc(strlen(temp) + 1, 1);
+		strcpy(*names, temp);
 		return;
 	};
 
@@ -79,7 +78,12 @@ int getino(int dev, char *pathname) {
 	MINODE *mp = (MINODE *)malloc( sizeof(MINODE) );
 	int i, inumber;
 	char buf[BLKSIZE];
+
 	getblock(dev, inodeTable, buf);
+
+	if( strncmp(pathname, "/", strlen(pathname) - 1) == 0) {
+		return 2;
+	}
 
 	tokenize(pathname, "/");
 	ip = (INODE *)buf + 1;

@@ -132,8 +132,8 @@ int list_file(MINODE *mip, char *name) {
 	printf(" %d", ip->i_uid);
 	printf(" %d", ip->i_gid);
 	printf(" %d", ip->i_size);
-	//strcpy(ftime, (char*)ctime( ip->i_ctime ) );
-	//printf(" %s", ip->i_ctime);
+	//strcpy(ftime, ctime( ip->i_ctime ) );
+	//printf(" %s", ftime);
 	printf(" %s", name);
 	if (LINK(ip->i_mode)) {
 		printf(" -> %s", (char *)ip->i_block);
@@ -151,26 +151,28 @@ int list_dir(MINODE *mip) {
 	*ip = mip->inode;
 	getblock(mip->dev, INUMBER(mip->ino, inodeTable), buf);
 	ip = (INODE *)buf + OFFSET(mip->ino);
-	printf("\tI_number\tRec_len\t\tName_len\tName\n");
 	for (i = 0; i < 12; i++) {
 		if (ip->i_block[i] != 0) {
 			getblock(mip->dev, ip->i_block[i], buf);
 			dp = (DIR *)buf;
 			cp = buf;
-			while(cp < buf + BLKSIZE) {
-				printf("\t%d\t\t%d\t\t%d\t\t%s\n",
-				dp->inode, dp->rec_len, dp->name_len, dp->name);
-				c = dp->name[dp->name_len];
-				dp->name[dp->name_len] = 0;
-				cip = iget(mip->dev, dp->inode);
-				list_file(cip, dp->name);
+			while(cp < buf + BLKSIZE) {	
+				if(dp->name[0] == '.');
+				else {
+					printf("I_number\tRec_len\t\tName_len\tName\n");
+					printf("%d\t\t%d\t\t%d\t\t%s\n",
+					dp->inode, dp->rec_len, dp->name_len, dp->name);
+					c = dp->name[dp->name_len];
+					dp->name[dp->name_len] = 0;
+					cip = iget(mip->dev, dp->inode);
+					list_file(cip, dp->name);
 
-				iput(cip);
-				dp->name[dp->name_len] = 0;
-
-
+					iput(cip);
+					dp->name[dp->name_len] = c;
+				}
 				cp += dp->rec_len;
 				dp = (DIR *)cp;
+				printf("\n\n");
 			}
 		}
 	}
@@ -180,10 +182,10 @@ int list_dir(MINODE *mip) {
 
 int _ls(char *name) {
    int ino, child, parent;
-   MINODE *mip 
+   MINODE *mip; 
 
    //finding the name of the current dir (as to give a full path for LS to function correctly)
-   if (name[0] == 0) {
+   if (*name == 0) {
    		findino(running->cwd, &child, &parent);
    		mip = iget(running->cwd->dev, parent);
    		findmyname(mip, running->cwd->ino, &name);
@@ -194,6 +196,13 @@ int _ls(char *name) {
    		//no more need for the mip MINODE, so return it.
    		iput(mip);
    }
+
+   else if (name[0] != '/') {
+   	//this case is that the name is a relative path, so we will turn this into a absolute
+   	fixPath(&name);
+   }
+
+   //no case needed if absolute path is already given.
 
 
    ino = getino(fd, name);

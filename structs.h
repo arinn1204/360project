@@ -18,6 +18,12 @@
 #define FILE_MODE(z) (z & 0xF000) == 0x8000
 #define LINK(z) (z & 0xF000) == 0xA000
 
+
+//Mailmans Algorithm
+#define INUMBER(y,z) (y - 1) / 8 + z
+#define OFFSET(y) (y - 1) % 8
+
+
 //Proc Status
 #define FREE 	0
 #define READY 	1
@@ -53,7 +59,7 @@ DIR *dp;
 
 //In-memory Inode Structure
 struct minode {
-	INODE *inode;
+	INODE inode;
 	int refcount;
 	int dev;
 	int ino;

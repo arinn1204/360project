@@ -24,22 +24,10 @@ int findCMD(char *command) {
 		else if (!strncmp(command, "touch", 5))			op = 15; 
 		else if (!strncmp(command, "quit", 4))			op = 30;
 		else if (!strncmp(command, "menu", 4))			op = 31;
-		/*
-		else if (!strncmp(command, "unlink", 6))		op = 9;
-		else if (!strncmp(command, "unlink", 6))		op = 9;
-		else if (!strncmp(command, "unlink", 6))		op = 9;
-		else if (!strncmp(command, "unlink", 6))		op = 9;
-		else if (!strncmp(command, "unlink", 6))		op = 9;
-		else if (!strncmp(command, "unlink", 6))		op = 9;
-		else if (!strncmp(command, "unlink", 6))		op = 9;
-		else if (!strncmp(command, "unlink", 6))		op = 9;
-		else if (!strncmp(command, "unlink", 6))		op = 9;
-		else if (!strncmp(command, "unlink", 6))		op = 9;
-		else if (!strncmp(command, "unlink", 6))		op = 9;
-		else if (!strncmp(command, "unlink", 6))		op = 9;
-		else if (!strncmp(command, "unlink", 6))		op = 9;
-		else if (!strncmp(command, "unlink", 6))		op = 9;
-		else if (!strncmp(command, "unlink", 6))		op = 9;*/
+		else {
+			printf("No command, %s\n", command);
+			op = 31;
+		}
 	return op;
 }
 
@@ -67,13 +55,12 @@ int main(int argc, char *argv[], char *env[]) {
 		}
 
 		sscanf(line, "%s %s %s", cmd, pathname, parameter);
-		//printf("cmd: %s, pathname: %s, parameter: %s\n", cmd, pathname, parameter);
 
 		op=findCMD(cmd);
 
 		
 		(*func[op]) (pathname);
-		printf("\n");
+		//printf("\n");
 		bzero(cmd, 32);
 		bzero(parameter, 64);
 		bzero(pathname, 64);

@@ -114,7 +114,7 @@ int list_file(MINODE *mip, char *name) {
 
 	int i;
 
-	ip = mip->inode;
+	*ip = mip->inode;
 
 	if(DIR_MODE(ip->i_mode))  printf("d");
 	if(FILE_MODE(ip->i_mode)) printf("-");
@@ -144,7 +144,7 @@ int list_file(MINODE *mip, char *name) {
 int list_dir(MINODE *mip) {
 	struct dirent *foo;
 	MINODE *cip;
-	ip = mip->inode;
+	*ip = mip->inode;
 
 
 }
@@ -152,7 +152,7 @@ int list_dir(MINODE *mip) {
 int _ls(char *name) {
    int ino = getino(fd, name);
    MINODE *mip = iget(fd,ino);
-   ip = mip->inode;
+   *ip = mip->inode;
 
    if (FILE_MODE(ip->i_mode))
       list_file(mip, basename(name));
@@ -163,15 +163,77 @@ int _ls(char *name) {
 
 }
 
+char *fixPath(char **name) {
+	char *temp, temp1[256];
+	char *cwd = calloc(20,1);
+	MINODE *mp = running->cwd, *fp = running->cwd;
+	int child, parent, len = 0, size = 20;
+	int i;
+
+	//fp = child
+	//mp = parent
+
+	while(1) {
+		if (mp != fp) fp = mp;
+		findino(fp, &child, &parent);
+		mp = iget(fp->dev, parent);
+		if(fp->ino == 2) {
+			strcpy(temp1, "/");
+			strcat(temp1, cwd);
+			strcpy(cwd, temp1);
+			len++;
+			break;
+		}
+		else {
+			findmyname(mp, fp->ino, &temp);
+			if(temp == 0) break;
+			if(len + 10 >= size) {
+				size *= 2;
+				cwd = realloc(cwd, size);
+			}
+			if(cwd[0] == 0) {
+				strcpy(cwd, temp);
+				strcat(cwd, "/");
+				len = strlen(cwd);
+			}
+			else {
+				strcpy(temp1, temp);
+				strcat(temp1, "/");
+				strcat(temp1, cwd);
+				strcpy(cwd, temp1);
+				len = strlen(cwd);
+			}
+		}
+		iput(mp);
+	}
+
+	if(len + 10 >= size) {
+		size *= 2;
+		cwd = realloc(cwd, size);
+	}
+
+	strcat(cwd, *name);
+	*name = cwd;
+	free(cwd);
+}
+
 int _cd(char *name) {
-	int ino;
+	int ino, child, parent;
 	MINODE *mip;
-	char *path;
+	char *path, *myname;
 	if(name[0] == 0) {
 		path = calloc(2,1);
 		strcpy(path, "/");
 		ino = 2;
 	}
+	/*else if (name[0] != '/') { 
+		//relative path
+		strcpy(path, name);
+		fixPath(&path);
+		ino = getino(fd, path);
+		if (ino == 0) return -1;
+
+	}*/
 	else {
 		path = calloc(strlen(name) + 1, 1);
 		strcpy(path, name);
@@ -181,7 +243,7 @@ int _cd(char *name) {
 
 	mip = iget(fd, ino);
 
-	if (FILE_MODE(mip->inode->i_mode)) {
+	if (FILE_MODE(mip->inode.i_mode)) {
 		printf("%s is not a directory\n", path);
 		free(path);
 	}
@@ -196,21 +258,51 @@ int _cd(char *name) {
 }
 
 int _pwd(char *name) {
-	char *cwd;
-	MINODE *mp;
-	int child, parent;
-	findino(running->cwd, &child, &parent);
-	mp = iget(running->cwd->dev, parent);
+	char *temp, temp1[256];
+	char *cwd = calloc(20,1);
+	int child, parent, len = 0, size = 20;
+	int i;
 
+	MINODE *mp = iget(running->cwd->dev, running->cwd->ino);
+	MINODE *fp = mp;
 
+	//fp = child
+	//mp = parent
 
-	if(running->cwd == root) {
-		printf("/");
-		return 0;
+	while(1) {
+		if (mp != fp) fp = mp;
+		findino(fp, &child, &parent);
+		mp = iget(fp->dev, parent);
+		if(fp->ino == 2) {
+			printf("/");
+			break;
+		}
+		else {
+			findmyname(mp, fp->ino, &temp);
+			if(temp == 0) break;
+			if(len + 10 >= size) {
+				size *= 2;
+				cwd = realloc(cwd, size);
+			}
+			if(cwd[0] == 0) {
+				strcpy(cwd, temp);
+				strcat(cwd, "/");
+				len = strlen(cwd);
+			}
+			else {
+				strcpy(temp1, temp);
+				strcat(temp1, "/");
+				strcat(temp1, cwd);
+				strcpy(cwd, temp1);
+				len = strlen(cwd);
+			}
+		}
+		iput(mp);
 	}
-	cwd = findmyname(mp, running->cwd->ino);
-	if(cwd[0] == 0) return -1;
-	printf("%s", cwd);
+	cwd[len-1] = 0;
+
+	printf("%s\n", cwd);
+
 
 	return 0;
 }
@@ -218,7 +310,7 @@ int _pwd(char *name) {
 int _mkdir(char *name) {
 }
 
-int _create(char *name) {
+int _creat(char *name) {
 
 }
 
@@ -265,7 +357,12 @@ int quit(char *name) {
 	exit(-1);
 }
 
-int (*func[32]) (char *name) = {init, mount_root, _ls, _cd, _pwd, _mkdir, _create, _rmdir, _link, _unlink, _rm, _symlink,
-									_chmod, _chown, _stat, _touch, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,quit, menu};
+int (*func[32]) (char *name) = {init, mount_root, _ls, _cd, _pwd,
+								_mkdir, _creat, _rmdir, _link, _unlink,
+								_rm, _symlink,_chmod, _chown, _stat,
+								_touch,0,0,0,0,
+								0,0,0,0,0,
+								0,0,0,0,0,
+								quit, menu};
 
 #endif

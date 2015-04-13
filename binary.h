@@ -109,12 +109,13 @@ int mount_root(char *name) {
 
 int list_file(MINODE *mip, char *name) {
 	char *t1 = "xwrxwrxwr";
-	char *t2 = "---------";
 	char ftime[64];
 
 	int i;
 
 	*ip = mip->inode;
+
+
 
 	if(DIR_MODE(ip->i_mode))  printf("d");
 	if(FILE_MODE(ip->i_mode)) printf("-");
@@ -122,9 +123,9 @@ int list_file(MINODE *mip, char *name) {
 
 	for (i = 8; i >= 0; i--) {
 		if(ip->i_mode & (1 << i))
-			printf("%c", t1[i]);
+			putchar( *(t1 + i) );
 		else
-			printf("%c", t2[i]);
+			putchar('-');
 	}
 
 	printf(" %d", ip->i_links_count);
@@ -143,15 +144,60 @@ int list_file(MINODE *mip, char *name) {
 
 int list_dir(MINODE *mip) {
 	struct dirent *foo;
+	char buf[BLKSIZE], *cp, c;
 	MINODE *cip;
+	int i;
+
 	*ip = mip->inode;
+	getblock(mip->dev, INUMBER(mip->ino, inodeTable), buf);
+	ip = (INODE *)buf + OFFSET(mip->ino);
+	printf("\tI_number\tRec_len\t\tName_len\tName\n");
+	for (i = 0; i < 12; i++) {
+		if (ip->i_block[i] != 0) {
+			getblock(mip->dev, ip->i_block[i], buf);
+			dp = (DIR *)buf;
+			cp = buf;
+			while(cp < buf + BLKSIZE) {
+				printf("\t%d\t\t%d\t\t%d\t\t%s\n",
+				dp->inode, dp->rec_len, dp->name_len, dp->name);
+				c = dp->name[dp->name_len];
+				dp->name[dp->name_len] = 0;
+				cip = iget(mip->dev, dp->inode);
+				list_file(cip, dp->name);
+
+				iput(cip);
+				dp->name[dp->name_len] = 0;
+
+
+				cp += dp->rec_len;
+				dp = (DIR *)cp;
+			}
+		}
+	}
 
 
 }
 
 int _ls(char *name) {
-   int ino = getino(fd, name);
-   MINODE *mip = iget(fd,ino);
+   int ino, child, parent;
+   MINODE *mip 
+
+   //finding the name of the current dir (as to give a full path for LS to function correctly)
+   if (name[0] == 0) {
+   		findino(running->cwd, &child, &parent);
+   		mip = iget(running->cwd->dev, parent);
+   		findmyname(mip, running->cwd->ino, &name);
+
+   		fixPath(&name);
+   		//at this point name should be the entire path
+
+   		//no more need for the mip MINODE, so return it.
+   		iput(mip);
+   }
+
+
+   ino = getino(fd, name);
+   mip = iget(fd,ino);
    *ip = mip->inode;
 
    if (FILE_MODE(ip->i_mode))
@@ -162,63 +208,9 @@ int _ls(char *name) {
    iput(mip);
 
 }
-
-char *fixPath(char **name) {
-	char *temp, temp1[256];
-	char *cwd = calloc(20,1);
-	MINODE *mp = running->cwd, *fp = running->cwd;
-	int child, parent, len = 0, size = 20;
-	int i;
-
-	//fp = child
-	//mp = parent
-
-	while(1) {
-		if (mp != fp) fp = mp;
-		findino(fp, &child, &parent);
-		mp = iget(fp->dev, parent);
-		if(fp->ino == 2) {
-			strcpy(temp1, "/");
-			strcat(temp1, cwd);
-			strcpy(cwd, temp1);
-			len++;
-			break;
-		}
-		else {
-			findmyname(mp, fp->ino, &temp);
-			if(temp == 0) break;
-			if(len + 10 >= size) {
-				size *= 2;
-				cwd = realloc(cwd, size);
-			}
-			if(cwd[0] == 0) {
-				strcpy(cwd, temp);
-				strcat(cwd, "/");
-				len = strlen(cwd);
-			}
-			else {
-				strcpy(temp1, temp);
-				strcat(temp1, "/");
-				strcat(temp1, cwd);
-				strcpy(cwd, temp1);
-				len = strlen(cwd);
-			}
-		}
-		iput(mp);
-	}
-
-	if(len + 10 >= size) {
-		size *= 2;
-		cwd = realloc(cwd, size);
-	}
-
-	strcat(cwd, *name);
-	*name = cwd;
-	free(cwd);
-}
-
 int _cd(char *name) {
 	int ino, child, parent;
+	int flag = 0;
 	MINODE *mip;
 	char *path, *myname;
 	if(name[0] == 0) {
@@ -226,16 +218,17 @@ int _cd(char *name) {
 		strcpy(path, "/");
 		ino = 2;
 	}
-	/*else if (name[0] != '/') { 
+	else if (name[0] != '/') { 
 		//relative path
 		strcpy(path, name);
 		fixPath(&path);
 		ino = getino(fd, path);
 		if (ino == 0) return -1;
 
-	}*/
+	}
 	else {
 		path = calloc(strlen(name) + 1, 1);
+		flag = 1;
 		strcpy(path, name);
 		ino = getino(fd, path);
 		if (ino == 0) return -1;
@@ -245,12 +238,12 @@ int _cd(char *name) {
 
 	if (FILE_MODE(mip->inode.i_mode)) {
 		printf("%s is not a directory\n", path);
-		free(path);
+		if (flag)	free(path);
 	}
 	else {
 		iput(running->cwd);
 		running->cwd = mip;
-		free(path);
+		if (flag) free(path);
 	}	
 	return 0;
 

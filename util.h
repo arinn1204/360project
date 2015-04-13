@@ -106,7 +106,7 @@ MINODE *iget(int dev, int ino) {
 		}
 	}
 	for (i = 0; i < NMINODES; i++) {
-		if(minode[i].ino == 0) {
+		if(minode[i].refcount == 0) {
 			getblock(dev, INUMBER(ino, inodeTable), buf);
 			ip = (INODE *)buf + OFFSET(ino);
 			minode[i].inode = *ip;
@@ -138,7 +138,7 @@ int iput(MINODE *mip) {
 }
 
 int findmyname(MINODE *parent, int myino, char **myname) {
-	char buf[BLKSIZE], c;
+	char buf[BLKSIZE], c, temp[256];
 	char *cp = buf;
 	int i, inumber;
 
@@ -159,8 +159,9 @@ int findmyname(MINODE *parent, int myino, char **myname) {
 				c = dp->name[dp->name_len];
 				dp->name[dp->name_len] = 0;
 				if(dp->inode == myino) {
+					strcpy(temp, dp->name);
+					*myname = temp;
 					dp->name[dp->name_len] = c;
-					*myname = dp->name;
 					return 1;
 				}
 				else {
@@ -197,5 +198,62 @@ int findino(MINODE *mip, int *myino, int *parentino) {
 	
 	return 0;
 }
+
+int fixPath(char **name) {
+	char *temp, temp1[256];
+	char *cwd = calloc(20,1);
+	MINODE *mp = running->cwd, *fp = running->cwd;
+	int child, parent, len = 0, size = 20;
+	int i;
+
+	//fp = child
+	//mp = parent
+
+	while(1) {
+		if (mp != fp) fp = mp;
+		findino(fp, &child, &parent);
+		mp = iget(fp->dev, parent);
+		if(fp->ino == 2) {
+			strcpy(temp1, "/");
+			strcat(temp1, cwd);
+			strcpy(cwd, temp1);
+			len++;
+			break;
+		}
+		else {
+			findmyname(mp, fp->ino, &temp);
+			if(temp == 0) break;
+			if(len + 10 >= size) {
+				size *= 2;
+				cwd = realloc(cwd, size);
+			}
+			if(cwd[0] == 0) {
+				strcpy(cwd, temp);
+				strcat(cwd, "/");
+				len = strlen(cwd);
+			}
+			else {
+				strcpy(temp1, temp);
+				strcat(temp1, "/");
+				strcat(temp1, cwd);
+				strcpy(cwd, temp1);
+				len = strlen(cwd);
+			}
+		}
+		iput(mp);
+	}
+
+	if(len + 10 >= size) {
+		size *= 2;
+		cwd = realloc(cwd, size);
+	}
+
+	strcat(cwd, *name);
+	strcpy(*name, cwd);
+	free(cwd);
+
+	return 1;
+}
+
 
 #endif

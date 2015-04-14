@@ -98,6 +98,9 @@ typedef struct proc PROC;
 typedef struct minode MINODE;
 typedef struct oft OFT;
 typedef struct mount MOUNT;
+typedef short unsigned int u16;
+typedef unsigned int u32;
+typedef unsigned long int u64;
 
 
 //The MINODE structures

@@ -17,19 +17,18 @@ int putblock(int dev, int block, char buf[]) {
 char *tokenize(char *pathname, char *delim) {
 	int len = -1;
 	int i, count = 0;
-	char *token;
+	char *token, temp[256];
 
 	if(pathname[0] == 0) return; 
-	len = strlen(pathname);
-	char *temp = calloc((len + 1), 1);
+	len = strlen(pathname) - 1;
 
 
 	strcpy(temp, pathname);
 
-	for (i=1;i<len;i++) if (temp[i] == *delim) count++;
+	for (i=1;i < len - 2;i++) if (temp[i] == *delim) count++;
 	nameCount = count + 1;
 	
-	if(count == 0) {
+	if(count == 0 && len < 3) {
 		names = calloc(2, 1);
 		names[0] = calloc(strlen(temp) + 1, 1);
 		strcpy(*names, temp);
@@ -45,7 +44,6 @@ char *tokenize(char *pathname, char *delim) {
 		token=strtok(NULL, delim); i++;
 	}
 	names[i] = 0;
-	free(temp);
 
 }
 
@@ -77,26 +75,28 @@ int search(MINODE *mip, char *name, int dev) {
 int getino(int dev, char *pathname) {
 	MINODE *mp = (MINODE *)malloc( sizeof(MINODE) );
 	int i, inumber;
-	char buf[BLKSIZE];
+	char buf[BLKSIZE], *name;
+
 
 	getblock(dev, inodeTable, buf);
 
 	if( strncmp(pathname, "/", strlen(pathname) - 1) == 0) {
 		return 2;
 	}
-
-	tokenize(pathname, "/");
+	name = (char *)calloc(strlen(pathname) + 1, 1);
+	strcpy(name, pathname);
+	tokenize(name, "/");
 	ip = (INODE *)buf + 1;
 	mp->inode = *ip;
 	for (i=0; i < nameCount; i++) {
 		inumber = search(mp,*(names+i), dev);
-		if(inumber == 0) { printf( "%s was not found!\n", *(names+i) ); return 0; }
+		if(inumber == 0) { /*printf( "%s was not found!\n", *(names+i) );*/ return 0; }
 		bzero(buf, BLKSIZE);
 		getblock(dev, INUMBER(inumber-1, inodeTable), buf);
 		ip = (INODE *)buf + OFFSET(inumber);
 		mp->inode = *ip;
 	} //end of for loop
-	free(mp);
+	free(mp); free(name);
 	return inumber;
 }
 
@@ -125,7 +125,6 @@ MINODE *iget(int dev, int ino) {
 }
 
 int iput(MINODE *mip) {
-	int block, inumber;
 	char buf[BLKSIZE], *location;
 	mip->refcount--;
 	if(mip->refcount > 0) return 0;
@@ -222,11 +221,15 @@ int fixPath(char **name) {
 			strcat(temp1, cwd);
 			strcpy(cwd, temp1);
 			len++;
+			iput (mp);
 			break;
 		}
 		else {
 			findmyname(mp, fp->ino, &temp);
-			if(temp == 0) break;
+			if(*temp == 0) {
+				iput(mp);
+				break; 
+			}
 			if(len + 10 >= size) {
 				size *= 2;
 				cwd = realloc(cwd, size);

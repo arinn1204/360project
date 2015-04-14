@@ -90,8 +90,11 @@ int balloc(int dev) {
 			decFreeBlocks(dev);
 
 			putblock(dev, bmap, buf);
+			return i+1;
 		}
 	}
+	printf("No more free blocks\n");
+	return 0;
 
 }
 

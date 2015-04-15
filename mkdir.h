@@ -145,7 +145,11 @@ int _mkdir(char *name) {
 
 
 
-	if(mymkdir(pip, name) == -1) return 0;
+	if(mymkdir(pip, name) == -1) {
+		iput(pip);
+		free(pname);
+		return 0;
+	}
 
 	pip->inode.i_links_count++;
 	pip->dirty = 1;

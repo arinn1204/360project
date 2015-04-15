@@ -7,8 +7,5 @@ LS
 CD
 PWD
 MKDIR
-
-Binary functions in progress:
-
-Create
-Touch
+TOUCH
+CREATE

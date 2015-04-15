@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ "$uid" != "0" ]; then
+if [ "$(id -u)" != "0" ]; then
 	echo "Must be root to run"
 	exit 1
 fi

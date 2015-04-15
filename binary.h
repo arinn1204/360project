@@ -2,7 +2,7 @@
 #define BINARY_H
 
 #include "util.h"
-#include "mkdir.h"
+#include "create.h"
 #include "ls.h"
 
 
@@ -208,15 +208,6 @@ int _pwd(char *name) {
 }
 
 
-
-int mycreate(MINODE *pip, char *name) {
-
-}
-
-int _creat(char *name) {
-
-}
-
 int _rmdir(char *name) {
 
 }
@@ -248,12 +239,8 @@ int _stat(char *file) {
 
 }
 
-int _touch(char *filename) {
-
-}
-
 int menu(char *name) {
-	printf("[ls][cd][pwd][mkdir][create] ");
+	printf("[ls][cd][pwd][mkdir][create][touch] ");
 }
 
 int quit(char *name) {

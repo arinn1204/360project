@@ -43,6 +43,8 @@
 #include <fcntl.h>
 #include <ext2fs/ext2_fs.h>
 #include <libgen.h>
+#include <unistd.h>
+#include <sys/types.h>
 
 
 

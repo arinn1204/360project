@@ -4,6 +4,7 @@
 #include "util.h"
 #include "create.h"
 #include "ls.h"
+#include "remove.h"
 
 
 int destruct() {
@@ -208,21 +209,11 @@ int _pwd(char *name) {
 }
 
 
-int _rmdir(char *name) {
-
-}
 
 int _link(char *name) {
 
 }
 
-int _unlink(char *name) {
-
-}
-
-int _rm(char *fullname) {
-
-}
 int _symlink(char *source) {
 
 }
@@ -244,7 +235,8 @@ int menu(char *name) {
 }
 
 int quit(char *name) {
-	exit(-1);
+	destruct();
+	exit(1);
 }
 
 int (*func[32]) (char *name) = {init, mount_root, _ls, _cd, _pwd,

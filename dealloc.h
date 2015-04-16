@@ -113,7 +113,7 @@ int idealloc(int dev, int ino) {
 }
 
 //this will deallocate a BLOCK, bno
-int iballoc(int dev, int bno) {
+int bdealloc(int dev, int bno) {
 	char buf[BLKSIZE];
 
 	getblock(dev, bmap, buf);

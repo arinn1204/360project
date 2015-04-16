@@ -106,7 +106,9 @@ int mount_root(char *name) {
 
 	//this sets the running process (PROC *) to P0
 	running = P0;
-
+	running->uid = getuid();
+	running->pid = getpid();
+	running->gid = getgid();
 
 }
 

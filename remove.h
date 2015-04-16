@@ -7,25 +7,32 @@
 
 int rm_child(MINODE *pip, char *name) {
 	char buf[BLKSIZE], *cp, *np, c;
-	int i;
+	int i, size, j, remain = BLKSIZE;
+	DIR *sp;
+
+
 	ip = &pip->inode;
 
 	for(i = 0; i < 12; i++) {
 		if(ip->i_block[i] != 0) {
+			//first loop through np == cp == buf
+			//Could not find a way around this
 			getblock(pip->dev, ip->i_block[i], buf);
 			dp = (DIR *)buf;
 			cp = buf;
+			np = cp;
+			sp = (DIR *)buf;
 			//np is one behind of cp at all times
 			while(cp < buf + BLKSIZE) {
-				c = dp->name[dp->name_len];
-				dp->name[dp->name_len] = 0;
+				//c = dp->name[dp->name_len];
+				//dp->name[dp->name_len] = 0;
 
 				//found the name to be removed
 				if( !strncmp(name, dp->name, dp->name_len) ) {
-					dp->name[dp->name_len] = c;
+					//dp->name[dp->name_len] = c;
 
 					//the name is the first and only entry
-					if (cp == buf + BLKSIZE && np == buf) {
+					if ( (cp + dp->rec_len) == buf + BLKSIZE && np == buf) {
 						//dealloc the block that is only this dir
 						bdealloc(pip->dev, ip->i_block[i]);
 						//move around the blocks so there are no holes
@@ -40,30 +47,78 @@ int rm_child(MINODE *pip, char *name) {
 
 					//the name is the very last entry (also pointed to by
 					//cp and dp
-					else if (cp + dp->rec_len > buf + BLKSIZE) {
 
+					//cp --> dir to remove
+					//np --> dir before it (one that will absorb the size)
+					else if (cp + dp->rec_len > buf + BLKSIZE) {
+						//take recording of the dir to remove's rec length
+						size = dp->rec_len;
+						//after reassigning the pointer in order to get a proper
+						//dir (i.e one that won't be removed AND the one that
+						//is immediately before the removed dir)
+						//just add the old rec_len to the current so that
+						//it will just ignore the old directory when searching
+						//not a complete "removal", however this will do since
+						//there is not a security emphasis
+						sp->rec_len += size;
+						return 1;
+						
 					}
 
 					//the name is somewhere in the middle
 					else {
+						size = dp->rec_len;
+						/*****************************
+						
+						| xxx | yyy | zzz | therestofthestuff
+						
+						^	  ^
+						np	  cp
+
+						|				BLKSIZE				|
+							  |			REMAIN 				|
+
+
+						remove yyy
+
+						| xxx | zzz | therestofthestuff.reclen + yyy.rec_len
+
+						^	  ^
+						np	  cp
+
+						******************************/
+
+						memcpy(buf + (BLKSIZE-remain),			//destination (cp)
+							buf + (BLKSIZE-remain+dp->rec_len), //source (cp + reclen)
+							remain);							//total bytes moving
+						while (cp + dp->rec_len < buf + BLKSIZE) {
+							cp += dp->rec_len;
+							remain -= dp->rec_len;
+							dp = (DIR *)cp;
+						}
+
+						dp->rec_len += remain;
 
 					}
 
 					return 1;
 				}
-				dp->name[dp->name_len] = c;
 
 
 				np = cp;
 				cp += dp->rec_len;
+				remain -= dp->rec_len;
+
+
 				dp = (DIR *)cp;
+				sp = (DIR *)np;
 			}
 		}
 	}
 }
 
 int _rmdir(char *name) {
-	int ino, pino, i, flag = 0;
+	int ino, pino, cino, i, flag = 0;
 	MINODE *mip, *pip;
 	u16 mode;
 	char buf[BLKSIZE], *tname, *pname, c, *cp;
@@ -147,6 +202,7 @@ int _rmdir(char *name) {
 			bdealloc(mip->dev, ip->i_block[i]);
 		}
 	}
+	cino = mip->ino;
 	iput(mip); //puts mip->refcount == 0
 	pname = calloc(strlen(tname) + 1, 1);
 
@@ -165,6 +221,7 @@ int _rmdir(char *name) {
 
 	rm_child(pip, name);
 
+	idealloc(pip->dev, cino);
 	pip->inode.i_links_count--;
 	pip->dirty = 1;
 	_touch(pname);

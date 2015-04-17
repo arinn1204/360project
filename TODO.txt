@@ -1,0 +1,5 @@
+Functions still to test:
+RMDIR
+SYMLINK
+LINK
+UNLINK

@@ -262,5 +262,39 @@ int fixPath(char **name) {
 	return 1;
 }
 
+int truncate(INODE *inode, int dev) {
+	int i, j, k;
+	char buf[BLKSIZE], buf1[BLKSIZE];
+	int *block, *doubleB;
+
+	for(i = 0; i < 15; i++) {
+		if(ip->i_block[i] == 0) break;
+		if (i < 12) {
+			bdealloc(dev, inode->i_block[i]);
+		}
+		else if (i == 12) {
+			getblock(dev, ip->i_block[i], buf);
+			block = (int *)buf;
+			for(j = 0; j < 256; j++) {
+				if( *(block + j) == 0 ) break;
+				bdealloc(dev, *(block + j) );
+			}
+		}
+		else if (i == 13) {
+			getblock(dev, ip->i_block[i], buf);
+			doubleB = (int *)buf;
+			for (j = 0; j < 256; j++) {
+				if( *(doubleB + j) == 0 ) break;
+				getblock(dev, *(doubleB + j), buf1);
+				block = (int *)buf1;
+				for(k = 0; k < 256; k++) {
+					if( *(block + k) == 0 ) break;
+					bdealloc(dev, *(block + k) );
+				}
+			}
+		}
+	}
+}
+
 
 #endif

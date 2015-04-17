@@ -231,13 +231,11 @@ int _rmdir(char *name) {
 
 }
 
-int _rm(char *fullname) {
-
-}
-
-
 int _unlink(char *name) {
 
+}
+int _rm(char *fullname) {
+	_unlink(fullname);
 }
 
 #endif

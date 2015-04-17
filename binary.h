@@ -5,6 +5,7 @@
 #include "create.h"
 #include "ls.h"
 #include "remove.h"
+#include "link.h"
 
 
 int destruct() {
@@ -210,16 +211,6 @@ int _pwd(char *name) {
 	return 0;
 }
 
-
-
-int _link(char *name) {
-
-}
-
-int _symlink(char *source) {
-
-}
-
 int _chmod(char *name) {
 
 }
@@ -233,7 +224,9 @@ int _stat(char *file) {
 }
 
 int menu(char *name) {
-	printf("[ls][cd][pwd][mkdir][create][touch] ");
+	printf("[ls][cd][pwd]\n"
+		"[mkdir][create][touch][link][symlink]\n"
+		"[rmdir][rm][unlink]\n");
 }
 
 int quit(char *name) {

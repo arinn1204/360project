@@ -232,6 +232,41 @@ int _rmdir(char *name) {
 }
 
 int _unlink(char *name) {
+	int mino, pino, temp;
+	MINODE *mip, *pip;
+	char *childName;
+
+	if (*name == 0) {
+		printf("Enter a name to unlink");
+		return -1;
+	}
+
+
+	fixPath(&name);
+	mino = getino(running->cwd->dev, name);
+
+	if (mino == 0) {
+		printf("%s does not exist\n", name);
+		return -1;
+	}
+
+	mip = iget(running->cwd->dev, mino);
+	ip = &mip->inode;
+
+	ip->i_links_count--;
+	if (ip->i_links_count == 0) {
+		//need to remove all datablocks, function found in util.h
+		truncate(ip, mip->dev);
+		idealloc(mip->dev, mino);
+	}
+	childName = basename(name);
+
+	findino(mip, &temp, &pino);
+
+	pip = iget(mip->dev, pino);
+
+	rm_child(pip, childName);
+
 
 }
 int _rm(char *fullname) {

@@ -230,7 +230,7 @@ int menu(char *name) {
 }
 
 int quit(char *name) {
-	destruct();
+	//destruct();
 	exit(1);
 }
 

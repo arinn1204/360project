@@ -130,7 +130,7 @@ int _symlink(char *source) {
 
 	sip->inode.i_mode = LINK_MODE;
 
-	memcpy(sip->inode.i_block, parameter, strlen(parameter) );
+	memcpy(sip->inode.i_block, source, strlen(parameter) );
 
 	sip->dirty = 1;
 	iput(sip);

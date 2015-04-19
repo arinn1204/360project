@@ -262,7 +262,7 @@ int fixPath(char **name) {
 	return 1;
 }
 
-int truncate(INODE *inode, int dev) {
+int truncateI(INODE *inode, int dev) {
 	int i, j, k;
 	char buf[BLKSIZE], buf1[BLKSIZE];
 	int *block, *doubleB;

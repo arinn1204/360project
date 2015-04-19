@@ -256,7 +256,7 @@ int _unlink(char *name) {
 	ip->i_links_count--;
 	if (ip->i_links_count == 0) {
 		//need to remove all datablocks, function found in util.h
-		truncate(ip, mip->dev);
+		truncateI(ip, mip->dev);
 		idealloc(mip->dev, mino);
 	}
 	childName = basename(name);

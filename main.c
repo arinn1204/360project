@@ -1,4 +1,4 @@
-#include "binary.h"
+#include "binary/binary.h"
 
 void initFunction(char *argv[]) {
 

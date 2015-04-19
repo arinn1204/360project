@@ -1,3 +1,0 @@
-Functions still to test:
-RMDIR
-UNLINK

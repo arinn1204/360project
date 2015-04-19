@@ -123,6 +123,15 @@ int _cd(char *name) {
 		strcpy(path, "/");
 		ino = 2;
 	}
+	else if ( !strncmp(".", name, strlen(name)) ) {
+		findino(running->cwd, &child, &parent);
+		ino = child;
+
+	}
+	else if ( !strncmp("..", name, strlen(name)) ) {
+		findino(running->cwd, &child, &parent);
+		ino = parent;
+	}
 	else if (name[0] != '/') { 
 		//relative path
 		strcpy(path, name);
@@ -149,7 +158,7 @@ int _cd(char *name) {
 
 	if (FILE_MODE(mip->inode.i_mode)) {
 		printf("%s is not a directory\n", path);
-		if (flag)	free(path);
+		if (flag) free(path);
 	}
 	else {
 		iput(running->cwd);

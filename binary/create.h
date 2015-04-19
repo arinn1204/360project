@@ -121,7 +121,7 @@ int _touch(char *name) {
 		return -1;
 	}
 
-	if ( getino(pip->dev, name) == -1 ) {
+	if ( getino(pip->dev, name) == 0 ) {
 		_creat(name);
 		iput(pip);
 	}

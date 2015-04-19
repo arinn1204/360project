@@ -5,6 +5,6 @@ if [ "$(id -u)" != "0" ]; then
 	exit 1
 fi
 
-mount -o loop disk mydisk
+mount -o loop disk $PWD/mydisk/
 ls -l mydisk
 umount mydisk

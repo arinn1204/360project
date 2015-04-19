@@ -6,9 +6,8 @@
 
 
 int rm_child(MINODE *pip, char *name) {
-	char buf[BLKSIZE], *cp, *np, c;
-	int i, size, j, remain = BLKSIZE;
-	DIR *sp;
+	char buf[BLKSIZE], *cp, *np, *pp, c;
+	int i, size, j;
 
 
 	ip = &pip->inode;
@@ -20,9 +19,9 @@ int rm_child(MINODE *pip, char *name) {
 			getblock(pip->dev, ip->i_block[i], buf);
 			dp = (DIR *)buf;
 			cp = buf;
-			np = cp;
-			sp = (DIR *)buf;
-			//np is one behind of cp at all times
+			pp = cp;
+			np = cp + dp->rec_len;
+			//np is one ahead of cp at all times
 			while(cp < buf + BLKSIZE) {
 				//c = dp->name[dp->name_len];
 				//dp->name[dp->name_len] = 0;
@@ -32,7 +31,7 @@ int rm_child(MINODE *pip, char *name) {
 					//dp->name[dp->name_len] = c;
 
 					//the name is the first and only entry
-					if ( (cp + dp->rec_len) == buf + BLKSIZE && np == buf) {
+					if ( np == buf + BLKSIZE && cp == buf + 24) {
 						//dealloc the block that is only this dir
 						bdealloc(pip->dev, ip->i_block[i]);
 						//move around the blocks so there are no holes
@@ -49,18 +48,13 @@ int rm_child(MINODE *pip, char *name) {
 					//cp and dp
 
 					//cp --> dir to remove
-					//np --> dir before it (one that will absorb the size)
-					else if (cp + dp->rec_len > buf + BLKSIZE) {
+					//np --> dir after it
+					else if (cp + dp->rec_len == buf + BLKSIZE) {
 						//take recording of the dir to remove's rec length
 						size = dp->rec_len;
-						//after reassigning the pointer in order to get a proper
-						//dir (i.e one that won't be removed AND the one that
-						//is immediately before the removed dir)
-						//just add the old rec_len to the current so that
-						//it will just ignore the old directory when searching
-						//not a complete "removal", however this will do since
-						//there is not a security emphasis
-						sp->rec_len += size;
+						dp = (DIR *)pp; //the previous entry
+						dp->rec_len += size;
+
 						return 1;
 						
 					}
@@ -72,8 +66,8 @@ int rm_child(MINODE *pip, char *name) {
 						
 						| xxx | yyy | zzz | therestofthestuff
 						
-						^	  ^
-						np	  cp
+							  ^		^
+							  cp 	np
 
 						|				BLKSIZE				|
 							  |			REMAIN 				|
@@ -83,21 +77,19 @@ int rm_child(MINODE *pip, char *name) {
 
 						| xxx | zzz | therestofthestuff.reclen + yyy.rec_len
 
-						^	  ^
-						np	  cp
-
+							  ^
+							  cp 			np is now in the abyss
+	
 						******************************/
-
-						memcpy(buf + (BLKSIZE-remain),			//destination (cp)
-							buf + (BLKSIZE-remain+dp->rec_len), //source (cp + reclen)
-							remain);							//total bytes moving
-						while (cp + dp->rec_len < buf + BLKSIZE) {
+						//memcpy(dest, source, numberofbytes);
+						memcpy(cp, np, &buf[BLKSIZE-1]-np);
+						dp = (DIR *)cp;							
+						while (cp + dp->rec_len + size < buf + BLKSIZE) {
 							cp += dp->rec_len;
-							remain -= dp->rec_len;
 							dp = (DIR *)cp;
 						}
 
-						dp->rec_len += remain;
+						dp->rec_len += size;
 
 					}
 
@@ -105,15 +97,16 @@ int rm_child(MINODE *pip, char *name) {
 				}
 
 
-				np = cp;
+				pp = cp;
 				cp += dp->rec_len;
-				remain -= dp->rec_len;
 
 
 				dp = (DIR *)cp;
-				sp = (DIR *)np;
+				np = cp + dp->rec_len;
 			}
 		}
+
+		return 0;
 	}
 }
 
@@ -218,6 +211,7 @@ int _rmdir(char *name) {
 	}
 
 	pip = iget(running->cwd->dev, pino);
+	name = basename(name);
 
 	rm_child(pip, name);
 
@@ -234,7 +228,7 @@ int _rmdir(char *name) {
 int _unlink(char *name) {
 	int mino, pino, temp;
 	MINODE *mip, *pip;
-	char *childName;
+	char *childName, *parentName;
 
 	if (*name == 0) {
 		printf("Enter a name to unlink");
@@ -256,16 +250,23 @@ int _unlink(char *name) {
 	ip->i_links_count--;
 	if (ip->i_links_count == 0) {
 		//need to remove all datablocks, function found in util.h
-		truncate(ip, mip->dev);
+		truncateI(ip, mip->dev);
 		idealloc(mip->dev, mino);
 	}
 	childName = basename(name);
+	parentName = dirname(name);
 
-	findino(mip, &temp, &pino);
+	pino = getino(mip->dev, parentName);
+
+	if(pino == 0) {
+		printf("%s does not exist\n", parentName);
+		return -1;
+	}
+	
 
 	pip = iget(mip->dev, pino);
 
-	rm_child(pip, childName);
+	return rm_child(pip, childName);
 
 
 }

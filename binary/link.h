@@ -96,8 +96,8 @@ int _symlink(char *source) {
 	param = (char *)calloc(strlen(parameter) + 1, 1);
 	strcpy(param, parameter);
 
-	fixPath(&source);
-	fixPath(&param);
+	if(*source != '/') fixPath(&source);
+	if(*param != '/')	fixPath(&param);
 
 	strcpy(parameter, param);
 	free(param);
@@ -130,7 +130,7 @@ int _symlink(char *source) {
 
 	sip->inode.i_mode = LINK_MODE;
 
-	memcpy(sip->inode.i_block, parameter, strlen(parameter) );
+	memcpy(sip->inode.i_block, source, strlen(source) );
 
 	sip->dirty = 1;
 	iput(sip);

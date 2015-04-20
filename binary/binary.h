@@ -6,6 +6,7 @@
 #include "ls.h"
 #include "remove.h"
 #include "link.h"
+#include "../fileio/open.h"
 
 
 int destruct() {

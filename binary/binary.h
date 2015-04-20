@@ -118,6 +118,8 @@ int _cd(char *name) {
 	int flag = 0;
 	MINODE *mip;
 	char *path, *myname;
+	u16 mode;
+
 	if(name[0] == 0) {
 		path = calloc(2,1);
 		strcpy(path, "/");
@@ -155,8 +157,9 @@ int _cd(char *name) {
 	}
 
 	mip = iget(fd, ino);
+	mode = mip->inode.i_mode;
 
-	if (FILE_MODE(mip->inode.i_mode)) {
+	if ( FILE_MODE(mode) ) {
 		printf("%s is not a directory\n", path);
 		if (flag) free(path);
 	}

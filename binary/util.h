@@ -153,6 +153,7 @@ int findmyname(MINODE *parent, int myino, char **myname) {
 
 	if(myino == 2) {
 		*myname = "/";
+		return 1;
 	}
 	for (i = 0; i < 12; i++) {
 		if(ip->i_block[i] != 0) {

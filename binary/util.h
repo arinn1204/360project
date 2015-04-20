@@ -145,10 +145,10 @@ int findmyname(MINODE *parent, int myino, char **myname) {
 	char *cp = buf;
 	int i, inumber;
 
-	*ip = parent->inode;
-	inumber = INUMBER(parent->ino, inodeTable);
-	getblock(parent->dev, inumber, buf);
-	ip = (INODE *)buf + OFFSET(parent->ino);
+	ip = &parent->inode;
+	//inumber = INUMBER(parent->ino, inodeTable);
+	//getblock(parent->dev, inumber, buf);
+	//ip = (INODE *)buf + OFFSET(parent->ino);
 
 
 	if(myino == 2) {

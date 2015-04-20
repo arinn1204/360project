@@ -1,8 +1,6 @@
 #ifndef OPEN_H
 #define OPEN_H
 
-int newFD;
-
 OFT *getOFT(int mode, MINODE *mip, int offset, int *des) {
 	int i;
 	for (i=0; i < NFD; i++) {
@@ -11,7 +9,7 @@ OFT *getOFT(int mode, MINODE *mip, int offset, int *des) {
 			running->fd[i]->mode = mode;
 			running->fd[i]->inodeptr = mip;
 			running->fd[i]->offset = offset;
-			running->fd[i]->refcount = 1;
+			running->fd[i]->refcount++;
 			*des = i;
 			return running->fd[i];
 		}
@@ -39,9 +37,9 @@ int getMode(char *mode) {
 	return flag;
 }
 
-int _open(char *name) {
+int _open(char *name, char *mode) {
 	char ans[16];
-	int mode, offset, mino, tmode;
+	int fmode, offset, mino, tmode, newFD;
 	MINODE *mip;
 	u16 imode;
 	OFT *table;
@@ -59,18 +57,13 @@ int _open(char *name) {
 		printf("File is not valid to open.\n");
 		return -1;
 	}
-
-	printf("[RDONLY][RDWR][WRONLY][APPEND]: ");
-	fgets(ans, 32, stdin);
-	ans[strlen(ans) - 1] = 0;
-
-	mode = getMode(ans);
-	switch(mode) {
+	fmode = getMode(mode);
+	switch(fmode) {
 		case 0: 
 		case 1:	 offset = 0;							  	    break;
 		case 2:  offset = 0; truncateI(&mip->inode, mip->dev);  break;
 		case 3:  offset = mip->inode.i_size;			  	    break;
-		default: printf("%s is not a valid mode\n", ans); 	    return -1;
+		default: printf("%s is not a valid mode\n", mode); 	    return -1;
 	}
 	tmode = openValue(mip->ino);
 	if (tmode != -1 && tmode != 0) {
@@ -78,13 +71,35 @@ int _open(char *name) {
 		return -1;
 	}
 
-	table = getOFT(mode, mip, offset, &newFD);
+	table = getOFT(fmode, mip, offset, &newFD);
 
 	mip->inode.i_atime = time(0L);
 	mip->inode.i_mtime = time(0L);
 
 	mip->dirty = 1;
 
+	return newFD;
+
+}
+
+int close(int dev) {
+	//this case *name needs to go through atoi in order to become the dev;
+	int i;
+	OFT* op;
+
+	if(running->fd[dev] == 0) {
+		printf("%d needs to be open in order to close."
+			"\nPlease open %d in order to close %d\n",
+			dev, dev, dev);
+		return -1;
+	}
+
+	running->fd[dev] = 0;
+	op = running->fd[dev];
+	op->refcount--;
+	if(op->refcount > 0) return 0;
+
+	iput(op->inodeptr);
 	return 0;
 
 }

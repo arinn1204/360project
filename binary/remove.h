@@ -31,7 +31,7 @@ int rm_child(MINODE *pip, char *name) {
 					//dp->name[dp->name_len] = c;
 
 					//the name is the first and only entry
-					if ( np == buf + BLKSIZE && cp == buf + 24) {
+					if ( cp + dp->rec_len == buf + BLKSIZE && (cp == buf || cp == buf + 24) ) {
 						//dealloc the block that is only this dir
 						bdealloc(pip->dev, ip->i_block[i]);
 						//move around the blocks so there are no holes

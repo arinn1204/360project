@@ -159,6 +159,7 @@ int findmyname(MINODE *parent, int myino, char **myname) {
 		if(ip->i_block[i] != 0) {
 			getblock(parent->dev, ip->i_block[i], buf);
 			dp = (DIR *)buf;
+			cp = buf;
 			while (cp < buf + BLKSIZE) {
 				if(dp->inode == myino) {
 					c = dp->name[dp->name_len];

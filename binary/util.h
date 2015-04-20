@@ -159,16 +159,15 @@ int findmyname(MINODE *parent, int myino, char **myname) {
 			getblock(parent->dev, ip->i_block[i], buf);
 			dp = (DIR *)buf;
 			while (cp < buf + BLKSIZE) {
-				c = dp->name[dp->name_len];
-				dp->name[dp->name_len] = 0;
 				if(dp->inode == myino) {
+					c = dp->name[dp->name_len];
+					dp->name[dp->name_len] = 0;
 					strcpy(temp, dp->name);
 					*myname = temp;
 					dp->name[dp->name_len] = c;
 					return 1;
 				}
 				else {
-					dp->name[dp->name_len] = c;
 					cp += dp->rec_len;
 					dp = (DIR *)cp;
 				}

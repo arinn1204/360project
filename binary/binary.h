@@ -159,7 +159,7 @@ int _cd(char *name) {
 	mip = iget(fd, ino);
 	mode = mip->inode.i_mode;
 
-	if ( FILE_MODE(mode) ) {
+	if ( ! DIR_MODE(mode) ) {
 		printf("%s is not a directory\n", path);
 		if (flag) free(path);
 	}

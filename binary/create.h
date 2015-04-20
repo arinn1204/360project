@@ -82,6 +82,13 @@ int _creat(char *name) {
 		return 0;
 	}
 
+
+	ip = &pip->inode;
+
+	ip->i_atime = time(0L);
+	ip->i_mtime = time(0L);
+	
+
 	pip->dirty = 1;
 	iput(pip);
 	free(pname);

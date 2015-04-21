@@ -234,7 +234,8 @@ int _stat(char *file) {
 int menu(char *name) {
 	printf("[ls][cd][pwd]\n"
 		"[mkdir][create][touch][link][symlink]\n"
-		"[rmdir][rm][unlink]\n");
+		"[rmdir][rm][unlink]\n"
+		"[cat]\n");
 }
 
 int quit(char *name) {
@@ -245,7 +246,7 @@ int quit(char *name) {
 int (*func[32]) (char *name) = {init, mount_root, _ls, _cd, _pwd,
 								_mkdir, _creat, _rmdir, _link, _unlink,
 								_rm, _symlink,_chmod, _chown, _stat,
-								_touch,0,0,0,0,
+								_touch,_cat,0,0,0,
 								0,0,0,0,0,
 								0,0,0,0,0,
 								quit, menu};

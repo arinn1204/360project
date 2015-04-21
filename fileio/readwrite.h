@@ -23,8 +23,8 @@ int _read(int dev, char *obuf, int bytes) {
 
 
 	if (avail <= 0) {
-		printf("No data to read.\n");
-		return -1;
+		//printf("No data to read.\n");
+		return 0;
 	}
 
 	while(bytes && avail) {

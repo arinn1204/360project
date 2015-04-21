@@ -253,6 +253,17 @@ int _unlink(char *name) {
 
 	mode = ip->i_mode;
 
+	if(running->uid != 0 && running->uid != mip->inode.i_uid) {
+		printf("Permission not allowed.\n");
+		iput(mip);
+		return -1;
+	}
+	if( DIR_MODE(mode) ) {
+		printf("Cannot unlink a dir.\n");
+		iput(mip);
+		return -1;
+	}
+
 	if ( LINK(mode) ) {
 		idealloc(mip->dev, mino);
 	}

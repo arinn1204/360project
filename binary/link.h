@@ -24,9 +24,7 @@ int _link(char *source) {
 		return -1;
 	}
 
-	destChild = (char *)calloc(strlen(parameter) + 1, 1);
 	destParent = (char *)calloc(strlen(parameter) + 1, 1);
-	strcpy(destChild, parameter);
 	strcpy(destParent, parameter);
 
 
@@ -44,7 +42,7 @@ int _link(char *source) {
 		return -1;
 	}
 
-	fixPath(&destParent);
+	if(destParent[0] != '/') fixPath(&destParent);
 	sino = getino(mip->dev, destParent);
 	if(sino != 0) {
 		printf("%s already exists\n", destParent);
@@ -61,9 +59,12 @@ int _link(char *source) {
 	}
 
 	sip = iget(mip->dev, sino);
-	destChild = basename(destChild);
+	free(destParent);
+
+	destChild = basename(parameter);
 
 	entername(sip, fino, destChild);
+
 
 	mip->inode.i_links_count = 1;
 	mip->dirty = 1;
@@ -71,9 +72,8 @@ int _link(char *source) {
 	iput(mip);
 	iput(sip);
 
-	//memory management shit
-	free(destChild); free(destParent);
-
+	//memory management shi
+	
 }
 
 int _symlink(char *source) {

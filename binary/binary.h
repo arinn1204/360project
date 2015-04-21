@@ -8,11 +8,9 @@
 #include "create.h"
 #include "remove.h"
 #include "link.h"
-<<<<<<< HEAD
 #include "../fileio/open.h"
 #include "../fileio/readwrite.h"
 #include "../fileio/writebinary.h"
-=======
 
 
 int destruct() {
@@ -21,8 +19,6 @@ int destruct() {
 	iput (root);
 }
 
-
->>>>>>> testing
 //initialize everything
 
 int init(char *name) {

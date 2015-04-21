@@ -1,11 +1,5 @@
-#ifndef LINK_H
-#define LINK_H
-
 #include "structs.h"
-#include "create.h"
-#include "mkdir.h"
 
-#define LINK_MODE 0xA1FF
 
 int _link(char *source) {
 	MINODE *mip, *sip;
@@ -139,6 +133,3 @@ int _symlink(char *source) {
 
 	free(dest);
 }
-
-
-#endif

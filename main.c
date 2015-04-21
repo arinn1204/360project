@@ -1,4 +1,4 @@
-#include "binary/binary.h"
+#include "binary/structs.h"
 
 void initFunction(char *argv[]) {
 
@@ -21,7 +21,7 @@ int findCMD(char *command) {
 		else if (!strncmp(command, "chmod", 5))			op = 12;
 		else if (!strncmp(command, "chown", 5))			op = 13;
 		else if (!strncmp(command, "stat", 4))			op = 14;
-		else if (!strncmp(command, "touch", 5))			op = 15; 
+		else if (!strncmp(command, "touch", 5))			op = 15;
 		else if (!strncmp(command, "quit", 4))			op = 30;
 		else if (!strncmp(command, "menu", 4))			op = 31;
 		else {

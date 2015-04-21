@@ -1,8 +1,4 @@
-#ifndef REMOVE_H
-#define REMOVE_H
-
-#include "dealloc.h"
-#include "util.h"
+#include "structs.h"
 
 
 int rm_child(MINODE *pip, char *name) {
@@ -273,5 +269,3 @@ int _unlink(char *name) {
 int _rm(char *fullname) {
 	_unlink(fullname);
 }
-
-#endif

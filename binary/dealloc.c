@@ -1,6 +1,4 @@
-#ifndef DEALLOC_H
-#define DEALLOC_H
-
+#include "structs.h"
 
 // tests an individual bit to see if it is a one
 int test_bit(char *buf, int bit) {
@@ -128,5 +126,3 @@ int bdealloc(int dev, int bno) {
 	nblocks++;
 
 }
-
-#endif

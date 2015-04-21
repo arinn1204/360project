@@ -1,8 +1,4 @@
-#ifndef UTIL_H
-#define UTIL_H
-
 #include "structs.h"
-#include "dealloc.h"
 
 int getblock(int dev, int block, char buf[]) {
 	lseek(dev, (long)block*BLKSIZE, 0);
@@ -295,6 +291,3 @@ int truncateI(INODE *inode, int dev) {
 		}
 	}
 }
-
-
-#endif

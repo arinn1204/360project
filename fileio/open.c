@@ -1,5 +1,5 @@
-#ifndef OPEN_H
-#define OPEN_H
+#include "../binary/structs.h"
+
 
 OFT *getOFT(int mode, MINODE *mip, int offset, int *des) {
 	int i;
@@ -66,7 +66,7 @@ int _open(char *name, char *mode) {
 		default: printf("%s is not a valid mode\n", mode); 	    return -1;
 	}
 	tmode = openValue(mip->ino);
-	if (tmode != -1 && tmode != 0) {
+	if (fmode == 0 && tmode != -1 && tmode != 0) {
 		printf("Already opened in an incompatible mode\n");
 		return -1;
 	}
@@ -82,7 +82,7 @@ int _open(char *name, char *mode) {
 
 }
 
-int close(int dev) {
+int _close(int dev) {
 	//this case *name needs to go through atoi in order to become the dev;
 	int i;
 	OFT* op;
@@ -103,5 +103,3 @@ int close(int dev) {
 	return 0;
 
 }
-
-#endif

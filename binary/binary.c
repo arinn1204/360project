@@ -1,26 +1,7 @@
-#ifndef BINARY_H
-#define BINARY_H
-
-#include "util.h"
-#include "create.h"
-#include "ls.h"
-#include "remove.h"
-#include "link.h"
-#include "../fileio/open.h"
+#include "structs.h"
 
 
 int destruct() {
-	free(P0->next);
-	free(P1->next);
-	free(running->next);
-
-	free(P0->cwd);
-	free(P1->cwd);
-	free(running->cwd);
-
-	free(P0);
-	free(P1);
-	free(running);
 }
 
 
@@ -243,13 +224,3 @@ int quit(char *name) {
 	//destruct();
 	exit(1);
 }
-
-int (*func[32]) (char *name) = {init, mount_root, _ls, _cd, _pwd,
-								_mkdir, _creat, _rmdir, _link, _unlink,
-								_rm, _symlink,_chmod, _chown, _stat,
-								_touch,0,0,0,0,
-								0,0,0,0,0,
-								0,0,0,0,0,
-								quit, menu};
-
-#endif

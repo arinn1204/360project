@@ -57,7 +57,6 @@ int _creat(char *name) {
 	pname = (char *)calloc(strlen(name) + 1, 1);
 	strcpy(pname, name);
 	pname = dirname(pname);
-	name = basename(name);
 
 	pino = getino(running->cwd->dev, pname);
 	if (pino == 0) {
@@ -68,14 +67,17 @@ int _creat(char *name) {
 	mode = pip->inode.i_mode;
 	if( ! DIR_MODE(mode) ) {
 		printf("%s is not a directory\n", pname);
+		iput(pip);
 		return -1;
 	}
 
 	if ( getino(pip->dev, name) ) {
 		printf("Cannot create file. File already exists\n");
+		iput(pip);
 		return -1;
 	}
 
+	name = basename(name);
 	if (mycreate(pip, name) == -1) {
 		iput(pip);
 		free(pname);

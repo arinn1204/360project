@@ -25,7 +25,7 @@ char *tokenize(char *pathname, char *delim) {
 
 	strcpy(temp, pathname);
 
-	for (i=1;i < len - 2;i++) if (temp[i] == *delim) count++;
+	for (i=1;i < len - 1;i++) if (temp[i] == *delim) count++;
 	nameCount = count + 1;
 	
 	if(count == 0 && len < 3) {

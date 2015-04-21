@@ -8,6 +8,9 @@
 # Don't ignore shell scripts
 !*.sh
 
+# Don't ignore textfiles, could be notes, todo, instructions, etc
+!*.txt
+
 # Don't ignore README or .gitignore
 !README.md
 !.gitignore

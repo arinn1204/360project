@@ -4,20 +4,14 @@
 #include "util.h"
 #include "create.h"
 #include "ls.h"
+#include "remove.h"
+#include "link.h"
 
 
 int destruct() {
-	free(P0->next);
-	free(P1->next);
-	free(running->next);
-
-	free(P0->cwd);
-	free(P1->cwd);
-	free(running->cwd);
-
-	free(P0);
-	free(P1);
-	free(running);
+	iput (P0->cwd);
+	iput (P1->cwd);
+	iput (root);
 }
 
 
@@ -105,7 +99,9 @@ int mount_root(char *name) {
 
 	//this sets the running process (PROC *) to P0
 	running = P0;
-
+	running->uid = getuid();
+	running->pid = getpid();
+	running->gid = getgid();
 
 }
 
@@ -114,18 +110,29 @@ int _cd(char *name) {
 	int flag = 0;
 	MINODE *mip;
 	char *path, *myname;
+	u16 mode;
+
 	if(name[0] == 0) {
 		path = calloc(2,1);
 		strcpy(path, "/");
 		ino = 2;
 	}
+	else if ( !strncmp(".", name, strlen(name)) ) {
+		findino(running->cwd, &child, &parent);
+		ino = child;
+
+	}
+	else if ( !strncmp("..", name, strlen(name)) ) {
+		findino(running->cwd, &child, &parent);
+		ino = parent;
+	}
 	else if (name[0] != '/') { 
 		//relative path
-		strcpy(path, name);
-		fixPath(&path);
-		ino = getino(fd, path);
+		//strcpy(path, name);
+		fixPath(&name);
+		ino = getino(fd, name);
 		if (ino == 0) {
-			printf("%s was not found.\n", path);
+			printf("%s was not found.\n", name);
 			return -1;
 		}
 
@@ -142,10 +149,11 @@ int _cd(char *name) {
 	}
 
 	mip = iget(fd, ino);
+	mode = mip->inode.i_mode;
 
-	if (FILE_MODE(mip->inode.i_mode)) {
+	if ( ! DIR_MODE(mode) ) {
 		printf("%s is not a directory\n", path);
-		if (flag)	free(path);
+		if (flag) free(path);
 	}
 	else {
 		iput(running->cwd);
@@ -207,26 +215,6 @@ int _pwd(char *name) {
 	return 0;
 }
 
-
-int _rmdir(char *name) {
-
-}
-
-int _link(char *name) {
-
-}
-
-int _unlink(char *name) {
-
-}
-
-int _rm(char *fullname) {
-
-}
-int _symlink(char *source) {
-
-}
-
 int _chmod(char *name) {
 
 }
@@ -240,11 +228,14 @@ int _stat(char *file) {
 }
 
 int menu(char *name) {
-	printf("[ls][cd][pwd][mkdir][create][touch] ");
+	printf("[ls][cd][pwd]\n"
+		"[mkdir][create][touch][link][symlink]\n"
+		"[rmdir][rm][unlink]\n");
 }
 
 int quit(char *name) {
-	exit(-1);
+	destruct();
+	exit(1);
 }
 
 int (*func[32]) (char *name) = {init, mount_root, _ls, _cd, _pwd,

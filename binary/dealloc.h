@@ -67,6 +67,7 @@ int ialloc(int dev) {
 			decFreeInodes(dev);
 
 			putblock(dev, imap, buf);
+			ninodes--;
 
 			return i + 1;
 		}
@@ -88,6 +89,7 @@ int balloc(int dev) {
 		if(test_bit(buf, i) == 0) {
 			set_bit(buf, i);
 			decFreeBlocks(dev);
+			nblocks--;
 
 			putblock(dev, bmap, buf);
 			return i+1;
@@ -108,12 +110,13 @@ int idealloc(int dev, int ino) {
 	decFreeInodes(dev);
 
 	putblock(dev, imap, buf);
+	ninodes++;
 
 
 }
 
 //this will deallocate a BLOCK, bno
-int iballoc(int dev, int bno) {
+int bdealloc(int dev, int bno) {
 	char buf[BLKSIZE];
 
 	getblock(dev, bmap, buf);
@@ -122,6 +125,7 @@ int iballoc(int dev, int bno) {
 	decFreeBlocks(dev);
 
 	putblock(dev, bmap, buf);
+	nblocks++;
 
 }
 

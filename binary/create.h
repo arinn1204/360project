@@ -82,6 +82,13 @@ int _creat(char *name) {
 		return 0;
 	}
 
+
+	ip = &pip->inode;
+
+	ip->i_atime = time(0L);
+	ip->i_mtime = time(0L);
+	
+
 	pip->dirty = 1;
 	iput(pip);
 	free(pname);
@@ -121,7 +128,7 @@ int _touch(char *name) {
 		return -1;
 	}
 
-	if ( getino(pip->dev, name) == -1 ) {
+	if ( getino(pip->dev, name) == 0 ) {
 		_creat(name);
 		iput(pip);
 	}

@@ -51,7 +51,7 @@ int list_dir(MINODE *mip) {
 	getblock(mip->dev, INUMBER(mip->ino, inodeTable), buf);
 	ip = (INODE *)buf + OFFSET(mip->ino);
 	for (i = 0; i < 12; i++) {
-		if (ip->i_block[i] != 0) {
+		if (mip->inode.i_block[i] != 0) {
 			getblock(mip->dev, ip->i_block[i], buf);
 			dp = (DIR *)buf;
 			cp = buf;
@@ -69,8 +69,8 @@ int list_dir(MINODE *mip) {
 					cip = iget(mip->dev, dp->inode);
 					list_file(cip, dp->name);
 
-					iput(cip);
 					dp->name[dp->name_len] = c;
+					iput(cip);
 				}
 				cp += dp->rec_len;
 				dp = (DIR *)cp;
@@ -92,7 +92,7 @@ int _ls(char *name) {
    		mip = iget(running->cwd->dev, parent);
    		findmyname(mip, running->cwd->ino, &name);
 
-   		fixPath(&name);
+   		if (*name != '/') fixPath(&name);
    		//at this point name should be the entire path
 
    		//no more need for the mip MINODE, so return it.

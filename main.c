@@ -1,4 +1,4 @@
-#include "binary.h"
+#include "binary/binary.h"
 
 void initFunction(char *argv[]) {
 
@@ -66,8 +66,6 @@ int main(int argc, char *argv[], char *env[]) {
 		bzero(pathname, 64);
 
 	}
-
-	destruct();
 
 
 	return 0;

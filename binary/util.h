@@ -145,30 +145,31 @@ int findmyname(MINODE *parent, int myino, char **myname) {
 	char *cp = buf;
 	int i, inumber;
 
-	*ip = parent->inode;
-	inumber = INUMBER(parent->ino, inodeTable);
-	getblock(parent->dev, inumber, buf);
-	ip = (INODE *)buf + OFFSET(parent->ino);
+	ip = &parent->inode;
+	//inumber = INUMBER(parent->ino, inodeTable);
+	//getblock(parent->dev, inumber, buf);
+	//ip = (INODE *)buf + OFFSET(parent->ino);
 
 
 	if(myino == 2) {
 		*myname = "/";
+		return 1;
 	}
 	for (i = 0; i < 12; i++) {
 		if(ip->i_block[i] != 0) {
 			getblock(parent->dev, ip->i_block[i], buf);
 			dp = (DIR *)buf;
+			cp = buf;
 			while (cp < buf + BLKSIZE) {
-				c = dp->name[dp->name_len];
-				dp->name[dp->name_len] = 0;
 				if(dp->inode == myino) {
+					c = dp->name[dp->name_len];
+					dp->name[dp->name_len] = 0;
 					strcpy(temp, dp->name);
 					*myname = temp;
 					dp->name[dp->name_len] = c;
 					return 1;
 				}
 				else {
-					dp->name[dp->name_len] = c;
 					cp += dp->rec_len;
 					dp = (DIR *)cp;
 				}
@@ -260,6 +261,40 @@ int fixPath(char **name) {
 	free(cwd);
 
 	return 1;
+}
+
+int truncateI(INODE *inode, int dev) {
+	int i, j, k;
+	char buf[BLKSIZE], buf1[BLKSIZE];
+	int *block, *doubleB;
+
+	for(i = 0; i < 15; i++) {
+		if(ip->i_block[i] == 0) break;
+		if (i < 12) {
+			bdealloc(dev, inode->i_block[i]);
+		}
+		else if (i == 12) {
+			getblock(dev, ip->i_block[i], buf);
+			block = (int *)buf;
+			for(j = 0; j < 256; j++) {
+				if( *(block + j) == 0 ) break;
+				bdealloc(dev, *(block + j) );
+			}
+		}
+		else if (i == 13) {
+			getblock(dev, ip->i_block[i], buf);
+			doubleB = (int *)buf;
+			for (j = 0; j < 256; j++) {
+				if( *(doubleB + j) == 0 ) break;
+				getblock(dev, *(doubleB + j), buf1);
+				block = (int *)buf1;
+				for(k = 0; k < 256; k++) {
+					if( *(block + k) == 0 ) break;
+					bdealloc(dev, *(block + k) );
+				}
+			}
+		}
+	}
 }
 
 

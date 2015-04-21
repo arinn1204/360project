@@ -92,7 +92,7 @@ int _ls(char *name) {
    		mip = iget(running->cwd->dev, parent);
    		findmyname(mip, running->cwd->ino, &name);
 
-   		fixPath(&name);
+   		if (*name != '/') fixPath(&name);
    		//at this point name should be the entire path
 
    		//no more need for the mip MINODE, so return it.

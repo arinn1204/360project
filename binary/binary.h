@@ -9,17 +9,9 @@
 
 
 int destruct() {
-	free(P0->next);
-	free(P1->next);
-	free(running->next);
-
-	free(P0->cwd);
-	free(P1->cwd);
-	free(running->cwd);
-
-	free(P0);
-	free(P1);
-	free(running);
+	iput (P0->cwd);
+	iput (P1->cwd);
+	iput (root);
 }
 
 
@@ -136,11 +128,11 @@ int _cd(char *name) {
 	}
 	else if (name[0] != '/') { 
 		//relative path
-		strcpy(path, name);
-		fixPath(&path);
-		ino = getino(fd, path);
+		//strcpy(path, name);
+		fixPath(&name);
+		ino = getino(fd, name);
 		if (ino == 0) {
-			printf("%s was not found.\n", path);
+			printf("%s was not found.\n", name);
 			return -1;
 		}
 
@@ -242,7 +234,7 @@ int menu(char *name) {
 }
 
 int quit(char *name) {
-	//destruct();
+	destruct();
 	exit(1);
 }
 

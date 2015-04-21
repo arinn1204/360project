@@ -195,7 +195,7 @@ int _rmdir(char *name) {
 			bdealloc(mip->dev, ip->i_block[i]);
 		}
 	}
-	cino = mip->ino;
+	idealloc(mip->dev, mip->ino);
 	iput(mip); //puts mip->refcount == 0
 	pname = calloc(strlen(tname) + 1, 1);
 
@@ -214,8 +214,6 @@ int _rmdir(char *name) {
 	name = basename(name);
 
 	rm_child(pip, name);
-
-	idealloc(pip->dev, cino);
 	pip->inode.i_links_count--;
 	pip->dirty = 1;
 	_touch(pname);

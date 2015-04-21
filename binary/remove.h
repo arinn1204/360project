@@ -6,7 +6,7 @@
 
 int rm_child(MINODE *pip, char *name) {
 	char buf[BLKSIZE], *cp, *np, *pp, c;
-	int i, size, j;
+	int i, size, j, dotsize;
 
 
 	ip = &pip->inode;
@@ -30,7 +30,7 @@ int rm_child(MINODE *pip, char *name) {
 					//dp->name[dp->name_len] = c;
 
 					//the name is the first and only entry
-					if ( cp + dp->rec_len == buf + BLKSIZE && (cp == buf || cp == buf + 24) ) {
+					if ( cp + dp->rec_len == buf + BLKSIZE && pp == buf) {
 						//dealloc the block that is only this dir
 						bdealloc(pip->dev, ip->i_block[i]);
 						//move around the blocks so there are no holes
@@ -39,6 +39,7 @@ int rm_child(MINODE *pip, char *name) {
 							ip->i_block[i] = ip->i_block[i + 1];
 						}
 						ip->i_block[i] = 0;
+						putblock(pip->dev, ip->i_block[i], buf);
 						return 1;
 						//the dir is now removed
 					}
@@ -53,6 +54,8 @@ int rm_child(MINODE *pip, char *name) {
 						size = dp->rec_len;
 						dp = (DIR *)pp; //the previous entry
 						dp->rec_len += size;
+
+						putblock(pip->dev, ip->i_block[i], buf);
 
 						return 1;
 						
@@ -81,7 +84,7 @@ int rm_child(MINODE *pip, char *name) {
 	
 						******************************/
 						//memcpy(dest, source, numberofbytes);
-						memcpy(cp, np, &buf[BLKSIZE-1]-np);
+						memcpy(cp, np, &buf[BLKSIZE]-np);
 						dp = (DIR *)cp;							
 						while (cp + dp->rec_len + size < buf + BLKSIZE) {
 							cp += dp->rec_len;
@@ -89,6 +92,7 @@ int rm_child(MINODE *pip, char *name) {
 						}
 
 						dp->rec_len += size;
+						putblock(pip->dev, ip->i_block[i], buf);
 
 					}
 
@@ -225,7 +229,8 @@ int _rmdir(char *name) {
 int _unlink(char *name) {
 	int mino, pino, temp;
 	MINODE *mip, *pip;
-	char *childName, *parentName;
+	char *childName, *parentName, *ct;
+	u16 mode;
 
 	if (*name == 0) {
 		printf("Enter a name to unlink");
@@ -245,13 +250,22 @@ int _unlink(char *name) {
 	ip = &mip->inode;
 
 	ip->i_links_count--;
-	if (ip->i_links_count == 0) {
+
+	mode = ip->i_mode;
+
+	if ( LINK(mode) ) {
+		idealloc(mip->dev, mino);
+	}
+	else if (ip->i_links_count == 0) {
 		//need to remove all datablocks, function found in util.h
 		truncateI(ip, mip->dev);
 		idealloc(mip->dev, mino);
 	}
-	childName = basename(name);
+	ct = (char *)calloc(strlen(name) + 1, 1);
+	strcpy(ct, name);
+	childName = basename(ct);
 	parentName = dirname(name);
+
 
 	pino = getino(mip->dev, parentName);
 
@@ -260,10 +274,19 @@ int _unlink(char *name) {
 		return -1;
 	}
 	
-
 	pip = iget(mip->dev, pino);
+	iput(mip);
 
-	return rm_child(pip, childName);
+	if( rm_child(pip, childName) ) {
+		free(ct);
+		pip->dirty = 1;
+		iput(pip);
+	}
+	else return -1;
+
+
+
+	return 1;
 
 
 }

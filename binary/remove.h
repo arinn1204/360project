@@ -143,20 +143,20 @@ int _rmdir(char *name) {
 		printf("Permission not allowed.\n");
 		flag = 1;
 	}
-	else if (mip->refcount > 1) {
+	else if (flag == 0 && mip->refcount > 1) {
 		printf("%s is busy.\n", name);
 		flag = 1;
 	}
-	else if (!DIR_MODE(mode)) {
+	else if (flag == 0 && DIR_MODE(mode) == 0) {
 		printf("%s is not a directory.\n", name);
 		flag = 1;
 	}
 
-	else if (mip->inode.i_links_count > 2) {
+	else if (flag == 0 && mip->inode.i_links_count > 2) {
 		printf("%s is not empty.\n", name);
 		flag = 1;
 	}
-	else {
+	else if (flag == 0){
 		ip = &mip->inode;
 		for(i = 0; i < 12; i++) {
 			if (ip->i_block[i] != 0) {
@@ -172,6 +172,7 @@ int _rmdir(char *name) {
 						printf("%s is not empty.\n", name);
 						dp->name[dp->name_len] = c;
 						flag = 1;
+						break;
 					}
 					dp->name[dp->name_len] = c;
 					cp += dp->rec_len;

@@ -122,7 +122,11 @@ int _symlink(char *source) {
 		return -1;
 	}
 
-	_creat(parameter);
+	if ( _creat(parameter) == -1) {
+		iput (mip);
+		free(dest);
+		return -1;
+	}
 
 	sino = getino(mip->dev, parameter);
 	sip = iget(mip->dev, sino);

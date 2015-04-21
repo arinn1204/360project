@@ -231,6 +231,7 @@ int _unlink(char *name) {
 	int mino, pino, temp;
 	MINODE *mip, *pip;
 	char *childName, *parentName, *ct;
+	u16 mode;
 
 	if (*name == 0) {
 		printf("Enter a name to unlink");
@@ -250,7 +251,13 @@ int _unlink(char *name) {
 	ip = &mip->inode;
 
 	ip->i_links_count--;
-	if (ip->i_links_count == 0) {
+
+	mode = ip->i_mode;
+
+	if ( LINK(mode) ) {
+		idealloc(mip->dev, mino);
+	}
+	else if (ip->i_links_count == 0) {
 		//need to remove all datablocks, function found in util.h
 		truncateI(ip, mip->dev);
 		idealloc(mip->dev, mino);

@@ -8,9 +8,21 @@
 #include "create.h"
 #include "remove.h"
 #include "link.h"
+<<<<<<< HEAD
 #include "../fileio/open.h"
 #include "../fileio/readwrite.h"
 #include "../fileio/writebinary.h"
+=======
+
+
+int destruct() {
+	iput (P0->cwd);
+	iput (P1->cwd);
+	iput (root);
+}
+
+
+>>>>>>> testing
 //initialize everything
 
 int init(char *name) {
@@ -106,6 +118,8 @@ int _cd(char *name) {
 	int flag = 0;
 	MINODE *mip;
 	char *path, *myname;
+	u16 mode;
+
 	if(name[0] == 0) {
 		path = calloc(2,1);
 		strcpy(path, "/");
@@ -122,11 +136,11 @@ int _cd(char *name) {
 	}
 	else if (name[0] != '/') { 
 		//relative path
-		strcpy(path, name);
-		fixPath(&path);
-		ino = getino(fd, path);
+		//strcpy(path, name);
+		fixPath(&name);
+		ino = getino(fd, name);
 		if (ino == 0) {
-			printf("%s was not found.\n", path);
+			printf("%s was not found.\n", name);
 			return -1;
 		}
 
@@ -143,8 +157,9 @@ int _cd(char *name) {
 	}
 
 	mip = iget(fd, ino);
+	mode = mip->inode.i_mode;
 
-	if (FILE_MODE(mip->inode.i_mode)) {
+	if ( ! DIR_MODE(mode) ) {
 		printf("%s is not a directory\n", path);
 		if (flag) free(path);
 	}
@@ -227,7 +242,7 @@ int menu(char *name) {
 }
 
 int quit(char *name) {
-	//destruct();
+	destruct();
 	exit(1);
 }
 

@@ -157,6 +157,12 @@ int _mkdir(char *name) {
 		return 0;
 	}
 
+	ip = &pip->inode;
+
+	ip->i_atime = time(0L);
+	ip->i_mtime = time(0L);
+	
+
 	pip->inode.i_links_count++;
 	pip->inode.i_atime = time(0L);
 	pip->inode.i_mtime = time(0L);

@@ -30,7 +30,7 @@ int rm_child(MINODE *pip, char *name) {
 					//dp->name[dp->name_len] = c;
 
 					//the name is the first and only entry
-					if ( np == buf + BLKSIZE && cp == buf + 24) {
+					if ( cp + dp->rec_len == buf + BLKSIZE && (cp == buf || cp == buf + 24) ) {
 						//dealloc the block that is only this dir
 						bdealloc(pip->dev, ip->i_block[i]);
 						//move around the blocks so there are no holes
@@ -194,7 +194,7 @@ int _rmdir(char *name) {
 			bdealloc(mip->dev, ip->i_block[i]);
 		}
 	}
-	cino = mip->ino;
+	idealloc(mip->dev, mip->ino);
 	iput(mip); //puts mip->refcount == 0
 	pname = calloc(strlen(tname) + 1, 1);
 
@@ -213,8 +213,6 @@ int _rmdir(char *name) {
 	name = basename(name);
 
 	rm_child(pip, name);
-
-	idealloc(pip->dev, cino);
 	pip->inode.i_links_count--;
 	pip->dirty = 1;
 	_touch(pname);

@@ -144,30 +144,31 @@ int findmyname(MINODE *parent, int myino, char **myname) {
 	char *cp = buf;
 	int i, inumber;
 
-	*ip = parent->inode;
-	inumber = INUMBER(parent->ino, inodeTable);
-	getblock(parent->dev, inumber, buf);
-	ip = (INODE *)buf + OFFSET(parent->ino);
+	ip = &parent->inode;
+	//inumber = INUMBER(parent->ino, inodeTable);
+	//getblock(parent->dev, inumber, buf);
+	//ip = (INODE *)buf + OFFSET(parent->ino);
 
 
 	if(myino == 2) {
 		*myname = "/";
+		return 1;
 	}
 	for (i = 0; i < 12; i++) {
 		if(ip->i_block[i] != 0) {
 			getblock(parent->dev, ip->i_block[i], buf);
 			dp = (DIR *)buf;
+			cp = buf;
 			while (cp < buf + BLKSIZE) {
-				c = dp->name[dp->name_len];
-				dp->name[dp->name_len] = 0;
 				if(dp->inode == myino) {
+					c = dp->name[dp->name_len];
+					dp->name[dp->name_len] = 0;
 					strcpy(temp, dp->name);
 					*myname = temp;
 					dp->name[dp->name_len] = c;
 					return 1;
 				}
 				else {
-					dp->name[dp->name_len] = c;
 					cp += dp->rec_len;
 					dp = (DIR *)cp;
 				}

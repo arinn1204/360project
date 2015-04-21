@@ -1,4 +1,7 @@
-#include "structs.h"
+#ifndef CREATE_H
+#define CREATE_H
+
+#include "mkdir.h"
 
 int mycreate(MINODE *pip, char *name) {
 	int ino, bno, i;
@@ -135,3 +138,5 @@ int _touch(char *name) {
 	return 1;
 
 }
+
+#endif

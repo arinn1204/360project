@@ -1,4 +1,5 @@
-#include "../binary/structs.h"
+#ifndef READWRITE_H
+#define READWRITE_H
 
 int _read(int dev, char *obuf, int bytes) {
 	MINODE *mip;
@@ -78,3 +79,4 @@ int _read(int dev, char *obuf, int bytes) {
 int _write(int dev, char *ibuf, int bytes) {
 
 }
+#endif

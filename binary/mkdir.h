@@ -1,3 +1,6 @@
+#ifndef MKDIR_H
+#define MKDIR_H
+
 #include "structs.h"
 
 
@@ -164,3 +167,5 @@ int _mkdir(char *name) {
 	return 1;
 
 }
+
+#endif

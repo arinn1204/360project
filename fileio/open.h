@@ -1,4 +1,5 @@
-#include "../binary/structs.h"
+#ifndef OPEN_H
+#define OPEN_H
 
 
 OFT *getOFT(int mode, MINODE *mip, int offset, int *des) {
@@ -103,3 +104,5 @@ int _close(int dev) {
 	return 0;
 
 }
+
+#endif

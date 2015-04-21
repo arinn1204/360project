@@ -1,3 +1,6 @@
+#ifndef REMOVE_H
+#define REMOVE_H
+
 #include "structs.h"
 
 
@@ -269,3 +272,5 @@ int _unlink(char *name) {
 int _rm(char *fullname) {
 	_unlink(fullname);
 }
+
+#endif

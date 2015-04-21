@@ -1,3 +1,6 @@
+#ifndef UTIL_H
+#define UTIL_H
+
 #include "structs.h"
 
 int getblock(int dev, int block, char buf[]) {
@@ -291,3 +294,5 @@ int truncateI(INODE *inode, int dev) {
 		}
 	}
 }
+
+#endif

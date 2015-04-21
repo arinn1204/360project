@@ -1,4 +1,9 @@
+#ifndef LINK_H
+#define LINK_H
+
 #include "structs.h"
+#include "util.h"
+#include "dealloc.h"
 
 
 int _link(char *source) {
@@ -133,3 +138,5 @@ int _symlink(char *source) {
 
 	free(dest);
 }
+
+#endif

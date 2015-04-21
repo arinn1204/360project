@@ -1,6 +1,17 @@
 #ifndef STRUCTS_H
 #define STRUCTS_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <fcntl.h>
+#include <ext2fs/ext2_fs.h>
+#include <libgen.h>
+#include <unistd.h>
+#include <sys/types.h>
+
+
+
 #define BLKSIZE 1024
 
 //Block Numbers for EXT2
@@ -41,17 +52,6 @@
 #define NPROC		 10
 #define NFD			 10
 #define NOFT		100
-
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <fcntl.h>
-#include <ext2fs/ext2_fs.h>
-#include <libgen.h>
-#include <unistd.h>
-#include <sys/types.h>
-
 
 
 typedef struct ext2_group_desc GD;
@@ -136,121 +136,5 @@ PROC *P0, *P1, *running;
 
 
 char pathname[64], parameter[64], cmd[32];
-
-/***********************************************************************
-
-				FUNCTION PROTOTYPES
-
-************************************************************************/
-
-
-
-
-/********************************************************
-
-				UTILITY FUNCTIONS
-
-*********************************************************/
-
-int getblock(int dev, int block, char buf[]);
-int putblock(int dev, int block, char buf[]);
-char *tokenize(char *pathname, char *delim);
-int search(MINODE *mip, char *name, int dev);
-int getino(int dev, char *pathname);
-MINODE *iget(int dev, int ino);
-int iput(MINODE *mip);
-int findmyname(MINODE *parent, int myino, char **myname);
-int findino(MINODE *mip, int *myino, int *parentino);
-int fixPath(char **name);
-int truncateI(INODE *inode, int dev);
-int test_bit(char *buf, int bit);
-int set_bit(char *buf, int bit);
-int clr_bit(char *buf, int bit);
-int decFreeInodes(int dev);
-int decFreeBlocks(int dev);
-int ialloc(int dev);
-int balloc(int dev);
-int idealloc(int dev, int ino);
-int bdealloc(int dev, int bno);
-
-
-/********************************************************
-
-				INIT FUNCTIONS
-
-*********************************************************/
-
-//int destruct();
-int init(char *name);
-int mount_root(char *name);
-
-
-/********************************************************
-
-				FILE/DIR REMOVAL
-
-*********************************************************/
-int rm_child(MINODE *pip, char *name);
-int _rmdir(char *name);
-int _unlink(char *name);
-int _rm(char *fullname);
-
-/********************************************************
-
-				FILE/DIR CREATION
-
-*********************************************************/
-int _link(char *source);
-int _symlink(char *source);
-int mycreate(MINODE *pip, char *name);
-int _creat(char *name);
-int _touch(char *name);
-int entername(MINODE *pip, int myino, char *name);
-int mymkdir(MINODE *parent, char *dirName);
-int _mkdir(char *name);
-
-/********************************************************
-
-				LIST FILE/DIR AND ETC FUNCTIONS
-
-*********************************************************/
-int list_file(MINODE *mip, char *name);
-int list_dir(MINODE *mip);
-int _ls(char *name);
-int _cd(char *name);
-int _pwd(char *name);
-int _chmod(char *name);
-int _chown(char *name);
-int _stat(char *name);
-int menu(char *name);
-int quit(char *name);
-
-
-/********************************************************
-
-					FILE I/O AND FILE FUNCTIONS
-
-*********************************************************/
-int _read(int dev, char *obuf, int bytes);
-int _write(int dev, char *ibuf, int bytes);
-OFT *getOFT(int mode, MINODE *mip, int offset, int *des);
-int openValue(int ino);
-int getMode(char *mode);
-int _open(char *name, char *mode);
-int _close(int dev);
-
-/********************************************************
-
-					FUNCTION TABLE INIT
-
-*********************************************************/
-
-int (*func[32]) (char *name) = {init, mount_root, _ls, _cd, _pwd,
-								_mkdir, _creat, _rmdir, _link, _unlink,
-								_rm, _symlink,_chmod, _chown, _stat,
-								_touch,0,0,0,0,
-								0,0,0,0,0,
-								0,0,0,0,0,
-								quit, menu};
 
 #endif

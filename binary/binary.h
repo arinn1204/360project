@@ -1,10 +1,16 @@
+#ifndef BINARY_H
+#define BINARY_H
+
+#include "util.h"
 #include "structs.h"
-
-
-//int destruct() {
-//}
-
-
+#include "ls.h"
+#include "mkdir.h"
+#include "create.h"
+#include "remove.h"
+#include "link.h"
+#include "../fileio/open.h"
+#include "../fileio/readwrite.h"
+#include "../fileio/writebinary.h"
 //initialize everything
 
 int init(char *name) {
@@ -224,3 +230,13 @@ int quit(char *name) {
 	//destruct();
 	exit(1);
 }
+
+int (*func[32]) (char *name) = {init, mount_root, _ls, _cd, _pwd,
+								_mkdir, _creat, _rmdir, _link, _unlink,
+								_rm, _symlink,_chmod, _chown, _stat,
+								_touch,0,0,0,0,
+								0,0,0,0,0,
+								0,0,0,0,0,
+								quit, menu};
+
+#endif

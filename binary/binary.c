@@ -1,8 +1,8 @@
 #include "structs.h"
 
 
-int destruct() {
-}
+//int destruct() {
+//}
 
 
 //initialize everything

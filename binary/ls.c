@@ -1,6 +1,4 @@
-#ifndef LS_H
-#define LS_H
-
+#include "structs.h"
 
 int list_file(MINODE *mip, char *name) {
 	char *t1 = "xwrxwrxwr";
@@ -123,5 +121,3 @@ int _ls(char *name) {
    iput(mip);
 
 }
-
-#endif

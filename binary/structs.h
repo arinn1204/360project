@@ -110,14 +110,13 @@ typedef short unsigned int u16;
 typedef unsigned int u32;
 typedef unsigned long int u64;
 
-
 //The MINODE structures
 MINODE minode[NMINODES], *root;
 
 
 char **names; //array of strings for the whole path
 //int name[64]; 		//array of pointers to the address of the strings
-int nameCount = -1;		//number of items in the arrays
+int nameCount;		//number of items in the arrays
 /*
 	inodeTable  = The inode start block
 	imap 	    = shows all of the inodes in the FS
@@ -126,7 +125,7 @@ int nameCount = -1;		//number of items in the arrays
 	nblocks		= Number of blocks available
 
 */
-int inodeTable = -1, imap = 0, bmap = 0, ninodes = 0, nblocks = 0;
+int inodeTable, imap, bmap, ninodes, nblocks ;
 
 //This is for the descriptor
 int fd;
@@ -137,8 +136,6 @@ PROC *P0, *P1, *running;
 
 
 char pathname[64], parameter[64], cmd[32];
-
-
 
 /***********************************************************************
 
@@ -183,7 +180,7 @@ int bdealloc(int dev, int bno);
 
 *********************************************************/
 
-int destruct();
+//int destruct();
 int init(char *name);
 int mount_root(char *name);
 

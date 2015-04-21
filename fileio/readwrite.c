@@ -3,7 +3,7 @@
 int _read(int dev, char *obuf, int bytes) {
 	MINODE *mip;
 	int avail = -1, lbk = -1, start = -1, remain = -1, offset = -1;
-	int filesize = -1, blk = -1, *dblock, *ddblock;
+	int filesize = -1, blk = -1, *dblock, *ddblock, count = 0;
 	char *cq = obuf, *cp, buf[BLKSIZE];
 
 	if (running->fd[dev]->mode != 0 && 
@@ -32,7 +32,7 @@ int _read(int dev, char *obuf, int bytes) {
 		start = offset % BLKSIZE;
 
 		if (lbk < 12) {
-			blk = mip->inode.i_block[lblk];
+			blk = mip->inode.i_block[lbk];
 			getblock(mip->dev, blk, buf);
 		}
 		else if (lbk >= 12 && lbk < 256 + 12) {
@@ -70,7 +70,7 @@ int _read(int dev, char *obuf, int bytes) {
 		}
 	}
 
-	return 0;
+	return count;
 
 }
 

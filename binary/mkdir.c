@@ -155,8 +155,8 @@ int _mkdir(char *name) {
 	}
 
 	pip->inode.i_links_count++;
-	pip->i_atime = time(0L);
-	pip->i_mtime = time(0L);
+	pip->inode.i_atime = time(0L);
+	pip->inode.i_mtime = time(0L);
 	pip->dirty = 1;
 	iput(pip);
 	free(pname);

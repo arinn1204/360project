@@ -136,7 +136,7 @@ int fd;
 PROC *P0, *P1, *running;
 
 
-char pathname[64], parameter[64], cmd[32];]
+char pathname[64], parameter[64], cmd[32];
 
 
 
@@ -186,15 +186,6 @@ int bdealloc(int dev, int bno);
 int destruct();
 int init(char *name);
 int mount_root(char *name);
-int (*func[32]) (char *name) = {init, mount_root, _ls, _cd, _pwd,
-								_mkdir, _creat, _rmdir, _link, _unlink,
-								_rm, _symlink,_chmod, _chown, _stat,
-								_touch,0,0,0,0,
-								0,0,0,0,0,
-								0,0,0,0,0,
-								quit, menu};
-
-
 
 
 /********************************************************
@@ -251,5 +242,18 @@ int getMode(char *mode);
 int _open(char *name, char *mode);
 int _close(int dev);
 
+/********************************************************
+
+					FUNCTION TABLE INIT
+
+*********************************************************/
+
+int (*func[32]) (char *name) = {init, mount_root, _ls, _cd, _pwd,
+								_mkdir, _creat, _rmdir, _link, _unlink,
+								_rm, _symlink,_chmod, _chown, _stat,
+								_touch,0,0,0,0,
+								0,0,0,0,0,
+								0,0,0,0,0,
+								quit, menu};
 
 #endif

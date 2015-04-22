@@ -5,8 +5,8 @@
 #include "readwrite.h"
 
 int _cat(char *name) {
-	int ino, dev, readBytes;
-	char buf[BLKSIZE], c;
+	int ino, dev, readBytes, i = 0;
+	char buf[BLKSIZE];
 	//name is filename
 	if(*name == 0) {
 		printf("No name.\n");
@@ -24,9 +24,16 @@ int _cat(char *name) {
 
 
 	while ( (readBytes = _read(dev, buf, BLKSIZE)) != 0) {
-
+		while(buf[i] != 0) {
+			if(buf[i] == '\n') {
+				fprintf(stderr, "\r");
+			}
+			putchar(buf[i++]);
+		}
+		i = 0;
 	}
 
+	fprintf(stderr, "\r\n");
 
 
 	_close(dev);

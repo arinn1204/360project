@@ -41,6 +41,7 @@ int _read(int dev, char *obuf, int bytes) {
 			getblock(mip->dev, mip->inode.i_block[12], buf);
 			dblock = (int *)buf;
 			blk = *(dblock + lbk - 12);
+			getblock(mip->dev, blk, buf);
 		}
 		else {
 			//double indirect blocks
@@ -49,6 +50,7 @@ int _read(int dev, char *obuf, int bytes) {
 			getblock(mip->dev, *(dblock + ( (lbk - 268) / 256) ), buf);
 			ddblock = (int *)buf;
 			blk = *(ddblock + (lbk - 268) % 256);
+			getblock(mip->dev, blk, buf);
 		}
 
 		cp = buf + start;

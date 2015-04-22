@@ -56,7 +56,16 @@ int _read(int dev, char *obuf, int bytes) {
 		cp = buf + start;
 		remain = BLKSIZE - start;
 
-		if (bytes <= remain) {
+		
+		if (bytes > avail) {
+			memcpy(cq, cp, avail);
+			running->fd[dev]->offset += avail;
+
+			count += avail;
+			avail = 0;
+		}
+
+		else if (bytes <= remain) {
 			//enough in block to finish
 			memcpy(cq, cp, bytes);
 			running->fd[dev]->offset += bytes;
@@ -84,7 +93,8 @@ int _write(int dev, char *ibuf, int bytes) {
 	int filesize = -1, blk = -1, *dblock, *ddblock, count = 0;
 	char *cq = ibuf, *cp, buf[BLKSIZE] = {0}, wbuf[BLKSIZE];
 
-	if (openValue(dev) == -1 || openValue(dev) == 0) {
+	if (openValue(running->fd[dev]->inodeptr->ino) == -1 ||
+		openValue(running->fd[dev]->inodeptr->ino) == 0) {
 		printf("File not open for write mode.\n");
 		return -1;
 	}
@@ -94,7 +104,7 @@ int _write(int dev, char *ibuf, int bytes) {
 	offset = running->fd[dev]->offset;
 	filesize = mip->inode.i_size;
 
-	avail = filesize - offset;
+	avail = BLKSIZE - offset;
 
 		while(bytes && avail) {
 
@@ -172,7 +182,7 @@ int _write(int dev, char *ibuf, int bytes) {
 
 		getblock(mip->dev, blk, wbuf);
 
-		cp = wbuf + start;
+		cp = ibuf + start;
 		remain = BLKSIZE - start;
 
 		if (bytes <= remain) {
@@ -181,7 +191,7 @@ int _write(int dev, char *ibuf, int bytes) {
 			running->fd[dev]->offset += bytes;
 
 			if(running->fd[dev]->offset > mip->inode.i_size) {
-				mip->inode.i_size = offset;
+				mip->inode.i_size = running->fd[dev]->offset;
 			}
 
 			count += bytes;
@@ -193,7 +203,7 @@ int _write(int dev, char *ibuf, int bytes) {
 			running->fd[dev]->offset += remain;
 
 			if(running->fd[dev]->offset > mip->inode.i_size) {
-				mip->inode.i_size = offset;
+				mip->inode.i_size = running->fd[dev]->offset;
 			}
 
 			count += remain;
@@ -201,7 +211,7 @@ int _write(int dev, char *ibuf, int bytes) {
 
 		}
 
-		putblock(mip->dev, blk, wbuf);
+		putblock(mip->dev, blk, cq);
 	}
 
 	mip->dirty = 1;

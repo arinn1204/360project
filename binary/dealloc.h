@@ -22,6 +22,37 @@ int clr_bit(char *buf, int bit) {
 	buf[i] &= ~(1 << j);
 }
 
+int incFreeInodes(int dev) {
+	char buf[BLKSIZE];
+
+	getblock(dev, SUPERBLOCK, buf);
+	sp = (SUPER *)buf;
+	sp->s_free_inodes_count++;
+	putblock(dev, SUPERBLOCK, buf);
+
+	getblock(dev, GDBLOCK, buf);
+	gp = (GD *)buf;
+
+	gp->bg_free_inodes_count++;
+	putblock(dev, GDBLOCK, buf);
+
+}
+
+int incFreeBlocks(int dev) {
+	char buf[BLKSIZE];
+
+	getblock(dev, SUPERBLOCK, buf);
+	sp = (SUPER *)buf;
+	sp->s_free_blocks_count++;
+	putblock(dev, SUPERBLOCK, buf);
+
+	getblock(dev, GDBLOCK, buf);
+	gp = (GD *)buf;
+
+	gp->bg_free_blocks_count++;
+	putblock(dev, GDBLOCK, buf);
+}
+
 int decFreeInodes(int dev) {
 	char buf[BLKSIZE];
 
@@ -106,7 +137,8 @@ int idealloc(int dev, int ino) {
 	getblock(dev, imap, buf);
 
 	clr_bit(buf, ino);
-	decFreeInodes(dev);
+	incFreeInodes(dev);
+
 
 	putblock(dev, imap, buf);
 	ninodes++;
@@ -121,7 +153,7 @@ int bdealloc(int dev, int bno) {
 	getblock(dev, bmap, buf);
 
 	clr_bit(buf, bno);
-	decFreeBlocks(dev);
+	incFreeBlocks(dev);
 
 	putblock(dev, bmap, buf);
 	nblocks++;

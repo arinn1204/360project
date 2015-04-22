@@ -1,7 +1,10 @@
 #!/bin/bash
 
-gcc -g ../main.c
-rm disk
-touch disk
-mkfs.ext2 disk 1440
-./a.out disk
+if [ "$1" == "normal" ]; then
+	gcc -g ../main.c
+	./a.out disk
+
+elif [ "$1" == "debug" ]; then
+	gcc -g ../main.c
+	gdb --args a.out disk
+fi

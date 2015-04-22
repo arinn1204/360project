@@ -76,13 +76,14 @@ int _cp(char *name) {
 	//creates the file if it does not exist already
 	if (sino == 0) {
 		_creat(temp);
+		
 	}
 
 	des = _open(name, READ);
 	source = _open(temp, WRITE);
 
 	while ( (bytes = _read(des, buf, BLKSIZE)) != 0)
-		_write(source, buf, BLKSIZE);
+		_write(source, buf, bytes);
 
 	_close(des);
 	_close(source);

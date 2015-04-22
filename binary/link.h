@@ -72,7 +72,6 @@ int _link(char *source) {
 	iput(mip);
 	iput(sip);
 
-	//memory management shi
 	
 }
 

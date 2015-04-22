@@ -128,7 +128,7 @@ int _rmdir(char *name) {
 
 	tname = (char *)calloc(strlen(name) + 1, 1);
 	strcpy(tname, name);
-	fixPath(&tname);
+	if(*name != '/') fixPath(&tname);
 
 	ino = getino(running->cwd->dev, tname);
 	if(ino == 0) {

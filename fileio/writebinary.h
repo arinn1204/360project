@@ -41,6 +41,55 @@ int _cat(char *name) {
 
 }
 
+int _cp(char *name) {
+
+	char *temp;
+	char buf[BLKSIZE];
+	int des, source, fino, sino;
+	int bytes;
+
+
+	if (*name == 0) {
+		printf("No source to copy.\n");
+		return -1;
+	}
+
+	if (*parameter == 0) {
+		printf("No destination to copy too.\n");
+		return -1;
+	}
+
+	temp = calloc( strlen(parameter) + 1, 1 );
+	strcpy(temp, parameter);
+
+	if (*name != '/') fixPath(&name);
+	if (*parameter != '/') fixPath(&temp);
+
+	fino = getino(running->cwd->dev, name);
+
+	if (fino == 0) {
+		printf("%s does not exist.\n", name);
+		return -1;
+	}
+
+	sino = getino(running->cwd->dev, temp);
+	//creates the file if it does not exist already
+	if (sino == 0) {
+		_creat(temp);
+	}
+
+	des = _open(name, READ);
+	source = _open(temp, WRITE);
+
+	while ( (bytes = _read(des, buf, BLKSIZE)) != 0)
+		_write(source, buf, BLKSIZE);
+
+	_close(des);
+	_close(source);
+	
+
+}
+
 
 
 

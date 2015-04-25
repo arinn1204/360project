@@ -24,6 +24,7 @@ int _read(int dev, char *obuf, int bytes) {
 
 	if (avail <= 0) {
 		//printf("No data to read.\n");
+		obuf = 0;
 		return 0;
 	}
 
@@ -89,9 +90,9 @@ int _read(int dev, char *obuf, int bytes) {
 
 int _write(int dev, char *ibuf, int bytes) {
 	MINODE *mip;
-	int avail = -1, lbk = -1, start = -1, remain = -1, offset = -1;
+	int lbk = -1, start = -1, remain = -1, offset = -1;
 	int filesize = -1, blk = -1, *dblock, *ddblock, count = 0;
-	char *cq = ibuf, *cp, buf[BLKSIZE] = {0}, wbuf[BLKSIZE];
+	char *cq = ibuf, *cp, buf[BLKSIZE], wbuf[BLKSIZE], zbuf[BLKSIZE], fbuf[BLKSIZE];
 
 	if (openValue(running->fd[dev]->inodeptr->ino) == -1 ||
 		openValue(running->fd[dev]->inodeptr->ino) == 0) {
@@ -104,21 +105,20 @@ int _write(int dev, char *ibuf, int bytes) {
 	offset = running->fd[dev]->offset;
 	filesize = mip->inode.i_size;
 
-	avail = BLKSIZE - offset;
-
-		while(bytes && avail) {
+		while(bytes > 0) {
+		bzero(zbuf, BLKSIZE);
+		bzero(wbuf, BLKSIZE);
+		bzero(fbuf, BLKSIZE);
 
 		lbk = offset / BLKSIZE;
 		start = offset % BLKSIZE;
 
 		if (lbk < 12) {
 			if(mip->inode.i_block[lbk] == 0) {
-				mip->inode.i_block[lbk] = balloc(mip->dev);
-				
-				//zero out the array
-				bzero(buf, BLKSIZE);
+				mip->inode.i_block[lbk] = balloc(mip);
+			
 
-				putblock(mip->dev, mip->inode.i_block[lbk], buf);
+				putblock(mip->dev, mip->inode.i_block[lbk], zbuf);
 			}
 
 			blk = mip->inode.i_block[lbk];
@@ -127,11 +127,9 @@ int _write(int dev, char *ibuf, int bytes) {
 		else if (lbk >= 12 && lbk < 256 + 12) {
 			//single indirect blocks
 			if (mip->inode.i_block[12] == 0) {
-				mip->inode.i_block[12] = balloc(mip->dev);
+				mip->inode.i_block[12] = balloc(mip);
 
-				bzero(buf, BLKSIZE);
-
-				putblock(mip->dev, mip->inode.i_block[12], buf);
+				putblock(mip->dev, mip->inode.i_block[12], zbuf);
 			}
 			getblock(mip->dev, mip->inode.i_block[12], buf);
 			dblock = (int *)buf;
@@ -139,50 +137,51 @@ int _write(int dev, char *ibuf, int bytes) {
 
 
 			if(blk == 0) {
-				blk = balloc(mip->dev);
+				*(dblock + lbk - 12) = balloc(mip);
+				blk = *(dblock + lbk - 12);
 
-				bzero(buf, BLKSIZE);
-
-				putblock(mip->dev, blk, buf);
+				putblock(mip->dev, blk, zbuf);
+				putblock(mip->dev, mip->inode.i_block[12], buf);
 			}
 
 		}
 		else {
 			//double indirect blocks
 			if (mip->inode.i_block[13] == 0) {
-				mip->inode.i_block[13] = balloc(mip->dev);
+				mip->inode.i_block[13] = balloc(mip);
 
-				bzero(buf, BLKSIZE);
-
-				putblock(mip->dev, mip->inode.i_block[13], buf);
+				putblock(mip->dev, mip->inode.i_block[13], zbuf);
 			}
 			getblock(mip->dev, mip->inode.i_block[13], buf);
 			dblock = (int *)buf;
 
 			if( *(dblock + ( (lbk - 268) / 256) ) == 0) {
-				*(dblock + ( (lbk - 268) / 256) ) = balloc(mip->dev);
+				*(dblock + ( (lbk - 268) / 256) ) = balloc(mip);
+				blk = *(dblock + ( (lbk - 268) / 256) );
 
-				bzero(buf, BLKSIZE);
-
-				putblock(mip->dev, *(dblock + ( (lbk - 268) / 256) ), buf);
+				putblock(mip->dev, blk, zbuf);
+				putblock(mip->dev, mip->inode.i_block[13], buf);
 			}
 
-			getblock(mip->dev, *(dblock + ( (lbk - 268) / 256) ), buf);
-			ddblock = (int *)buf;
+			getblock(mip->dev, *(dblock + ( (lbk - 268) / 256) ), wbuf);
+			ddblock = (int *)wbuf;
 			blk = *(ddblock + (lbk - 268) % 256);
 
 			if ( blk == 0) {
-				blk = balloc(mip->dev);
+				*(ddblock + (lbk - 268) % 256) = balloc(mip);
+				blk = *(ddblock + (lbk - 268) % 256);
 
-				bzero(buf, BLKSIZE);
+				putblock(mip->dev, blk, zbuf);
+				putblock(mip->dev, *(dblock + ( (lbk - 268) / 256) ), wbuf);
 
-				putblock(mip->dev, blk, buf);
+
 			}
 		}
 
-		getblock(mip->dev, blk, wbuf);
+		getblock(mip->dev, blk, fbuf);
+		cq = fbuf + start;
 
-		cp = ibuf + start;
+		cp = ibuf;
 		remain = BLKSIZE - start;
 
 		if (bytes <= remain) {
@@ -194,8 +193,7 @@ int _write(int dev, char *ibuf, int bytes) {
 				mip->inode.i_size = running->fd[dev]->offset;
 			}
 
-			count += bytes;
-			avail -= bytes; bytes = 0; remain -= bytes;
+			count += bytes; bytes = 0; remain -= bytes;
 		}
 
 		else {
@@ -206,8 +204,7 @@ int _write(int dev, char *ibuf, int bytes) {
 				mip->inode.i_size = running->fd[dev]->offset;
 			}
 
-			count += remain;
-			avail -= remain; remain = 0; bytes -= remain;
+			count += remain; remain = 0; bytes -= remain;
 
 		}
 
@@ -219,4 +216,22 @@ int _write(int dev, char *ibuf, int bytes) {
 
 
 }
+
+int _lseek(int dev, int bytes) {
+	int original;
+	if (running->fd[dev] == 0 ) {
+		printf("Device not open.\n");
+		return 1;
+	}
+
+	if (bytes + running->fd[dev]->offset < running->fd[dev]->inodeptr->inode.i_size
+	&& bytes + running->fd[dev]->offset >= 0) {
+		original = running->fd[dev]->offset;
+		running->fd[dev]->offset += bytes;
+	}
+
+	return original;
+}
+
+
 #endif

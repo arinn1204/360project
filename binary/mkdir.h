@@ -1,7 +1,9 @@
 #ifndef MKDIR_H
 #define MKDIR_H
 
+
 #include "structs.h"
+#include "dealloc.h"
 
 
 int entername(MINODE *pip, int myino, char *name) {
@@ -40,7 +42,7 @@ int entername(MINODE *pip, int myino, char *name) {
 				
 	}
 	else {
-		blk = balloc(pip->dev);
+		blk = balloc(pip);
 		pip->inode.i_size += 1024;
 		pip->inode.i_block[i] = blk;
 		dp = (DIR *)buf;
@@ -63,7 +65,7 @@ int mymkdir(MINODE *parent, char *dirName) {
 	MINODE *mip; //inode that we are loading information into
 
 	ino = ialloc(parent->dev);
-	bno = balloc(parent->dev);
+	bno = balloc(parent);
 
 	if(ino == 0 || bno == 0) {
 		return -1;

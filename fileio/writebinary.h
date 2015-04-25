@@ -31,6 +31,7 @@ int _cat(char *name) {
 			putchar(buf[i++]);
 		}
 		i = 0;
+		bzero(buf, BLKSIZE);
 	}
 
 	fprintf(stderr, "\r\n");
@@ -91,6 +92,9 @@ int _cp(char *name) {
 
 }
 
+int _mv(char *name) {
+	
+}
 
 
 

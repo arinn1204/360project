@@ -27,7 +27,7 @@ int mycreate(MINODE *pip, char *name) {
 	ip->i_atime = time(0L);
 	ip->i_mtime = time(0L);
 	ip->i_ctime = time(0L);
-	ip->i_blocks = 2;
+	ip->i_blocks = 0;
 
 	for (i = 0; i < 12; i++) {
 		ip->i_block[i] = 0;

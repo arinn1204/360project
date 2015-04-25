@@ -32,7 +32,7 @@ int rm_child(MINODE *pip, char *name) {
 					//the name is the first and only entry
 					if ( cp + dp->rec_len == buf + BLKSIZE && pp == buf) {
 						//dealloc the block that is only this dir
-						bdealloc(pip->dev, ip->i_block[i]);
+						bdealloc(pip, ip->i_block[i]);
 						//move around the blocks so there are no holes
 						while (i < 11) {
 							if(ip->i_block[i+1] == 0) break;
@@ -196,7 +196,7 @@ int _rmdir(char *name) {
 	for(i = 0; i < 12; i++) {
 		if(ip->i_block[i] == 0);
 		else {
-			bdealloc(mip->dev, ip->i_block[i]);
+			bdealloc(mip, ip->i_block[i]);
 		}
 	}
 	idealloc(mip->dev, mip->ino);
@@ -270,7 +270,7 @@ int _unlink(char *name) {
 	}
 	else if (ip->i_links_count == 0) {
 		//need to remove all datablocks, function found in util.h
-		truncateI(ip, mip->dev);
+		truncateI(mip);
 		idealloc(mip->dev, mino);
 	}
 	ct = (char *)calloc(strlen(name) + 1, 1);

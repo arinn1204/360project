@@ -72,7 +72,7 @@ int _open(char *name, char *mode) {
 	switch(fmode) {
 		case 0: 
 		case 1:	 offset = 0;							  	    break;
-		case 2:  offset = 0; truncateI(&mip->inode, mip->dev);  break;
+		case 2:  offset = 0; truncateI(mip); 				 	break;
 		case 3:  offset = mip->inode.i_size;			  	    break;
 		default: printf("%s is not a valid mode\n", mode); 	    return -1;
 	}

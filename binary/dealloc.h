@@ -1,6 +1,8 @@
 #ifndef DEALLOC_H
 #define DEALLOC_H
 
+#include "util.h"
+
 // tests an individual bit to see if it is a one
 int test_bit(char *buf, int bit) {
 	int i, j;
@@ -109,19 +111,20 @@ int ialloc(int dev) {
 }
 
 //this will allocate a new block inside a current inode
-int balloc(int dev) {
+int balloc(MINODE *mip) {
 	int i;
 	char buf[BLKSIZE];
 
-	getblock(dev, bmap, buf);
+	getblock(mip->dev, bmap, buf);
 
 	for (i = 0; i < nblocks; i++) {
 		if(test_bit(buf, i) == 0) {
 			set_bit(buf, i);
-			decFreeBlocks(dev);
+			decFreeBlocks(mip->dev);
 			nblocks--;
+			mip->inode.i_blocks++;
 
-			putblock(dev, bmap, buf);
+			putblock(mip->dev, bmap, buf);
 			return i+1;
 		}
 	}
@@ -147,15 +150,17 @@ int idealloc(int dev, int ino) {
 }
 
 //this will deallocate a BLOCK, bno
-int bdealloc(int dev, int bno) {
+int bdealloc(MINODE *mip, int bno) {
 	char buf[BLKSIZE];
 
-	getblock(dev, bmap, buf);
+	getblock(mip->dev, bmap, buf);
 
 	clr_bit(buf, bno);
-	incFreeBlocks(dev);
+	incFreeBlocks(mip->dev);
 
-	putblock(dev, bmap, buf);
+	mip->inode.i_blocks--;
+
+	putblock(mip->dev, bmap, buf);
 	nblocks++;
 
 }

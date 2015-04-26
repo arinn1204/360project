@@ -13,7 +13,9 @@ int list_file(MINODE *mip, char *name) {
 	u16 link = ip->i_links_count;
 	u16 uid = ip->i_uid;
 	u16 gid = ip->i_gid;
-	u16 size = ip->i_size;
+	u32 size = ip->i_size;
+	u32 c_time = ip->i_ctime;
+	const time_t *ct = &c_time;
 
 	if(DIR_MODE(mode))  printf("d");
 	else if(FILE_MODE(mode)) printf("-");
@@ -30,8 +32,9 @@ int list_file(MINODE *mip, char *name) {
 	printf(" %d", uid);
 	printf(" %d", gid);
 	printf(" %d", size);
-	//strcpy(ftime, (char)ctime( &mip->inode.i_ctime ) );
-	//printf(" %s", ftime);
+	strcpy(ftime, (char *)ctime( ct ) );
+	ftime[strlen(ftime) - 1] = 0;
+	printf(" %s", ftime);
 	printf(" %s", name);
 	if (LINK(mode)) {
 		printf(" -> %s", (char *)ip->i_block);

@@ -93,6 +93,7 @@ int _write(int dev, char *ibuf, int bytes) {
 	int lbk = -1, start = -1, remain = -1, offset = -1;
 	int filesize = -1, blk = -1, *dblock, *ddblock, count = 0;
 	char *cq = ibuf, *cp, buf[BLKSIZE], wbuf[BLKSIZE], zbuf[BLKSIZE], fbuf[BLKSIZE];
+	char tbuf[BLKSIZE];
 
 	if (openValue(running->fd[dev]->inodeptr->ino) == -1 ||
 		openValue(running->fd[dev]->inodeptr->ino) == 0) {
@@ -161,6 +162,7 @@ int _write(int dev, char *ibuf, int bytes) {
 
 				putblock(mip->dev, blk, zbuf);
 				putblock(mip->dev, mip->inode.i_block[13], buf);
+				getblock(mip->dev, mip->inode.i_block[13], tbuf);
 			}
 
 			getblock(mip->dev, *(dblock + ( (lbk - 268) / 256) ), wbuf);
@@ -173,6 +175,7 @@ int _write(int dev, char *ibuf, int bytes) {
 
 				putblock(mip->dev, blk, zbuf);
 				putblock(mip->dev, *(dblock + ( (lbk - 268) / 256) ), wbuf);
+				getblock(mip->dev, *(dblock + ( (lbk - 268) / 256) ), tbuf);
 
 
 			}

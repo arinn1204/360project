@@ -2,6 +2,10 @@
 #define MKDIR_H
 
 
+#include "structs.h"
+#include "dealloc.h"
+
+
 int entername(MINODE *pip, int myino, char *name) {
 	int i, blk, remain, ideal;
 	char buf[BLKSIZE], *cp;
@@ -38,9 +42,9 @@ int entername(MINODE *pip, int myino, char *name) {
 				
 	}
 	else {
-		blk = balloc(pip->dev);
+		blk = balloc(pip);
 		pip->inode.i_size += 1024;
-
+		pip->inode.i_block[i] = blk;
 		dp = (DIR *)buf;
 		dp->inode = myino;
 		dp->rec_len = BLKSIZE;
@@ -55,12 +59,13 @@ int mymkdir(MINODE *parent, char *dirName) {
 	//allocating new block and inode for the directory
 	int ino, bno, i;
 	char buf[BLKSIZE], *cp = buf;
+	//char *dot = ".", *dotdot = "..";
 	dp = (DIR*)buf;
 
 	MINODE *mip; //inode that we are loading information into
 
 	ino = ialloc(parent->dev);
-	bno = balloc(parent->dev);
+	bno = balloc(parent);
 
 	if(ino == 0 || bno == 0) {
 		return -1;
@@ -90,7 +95,8 @@ int mymkdir(MINODE *parent, char *dirName) {
 	dp->inode = ino;
 	dp->rec_len = 12;
 	dp->name_len = 1;
-	strcpy(dp->name, ".");
+	//strcpy(dp->name, ".");
+	memcpy(dp->name, ".", 1);
 
 	cp += dp->rec_len;
 	dp = (DIR *)cp;
@@ -98,7 +104,9 @@ int mymkdir(MINODE *parent, char *dirName) {
 	dp->inode = parent->ino;
 	dp->rec_len = 1012;
 	dp->name_len = 2;
-	strcpy(dp->name, "..");
+	//strcpy(dp->name, "..");
+	memcpy(dp->name, "..", 2);
+
 
 	putblock(running->cwd->dev, bno, buf);
 
@@ -158,6 +166,8 @@ int _mkdir(char *name) {
 	
 
 	pip->inode.i_links_count++;
+	pip->inode.i_atime = time(0L);
+	pip->inode.i_mtime = time(0L);
 	pip->dirty = 1;
 	iput(pip);
 	free(pname);

@@ -1,6 +1,7 @@
 #ifndef DEALLOC_H
 #define DEALLOC_H
 
+#include "util.h"
 
 // tests an individual bit to see if it is a one
 int test_bit(char *buf, int bit) {
@@ -21,6 +22,37 @@ int set_bit(char *buf, int bit) {
 int clr_bit(char *buf, int bit) {
 	int i=bit/8, j=bit%8;
 	buf[i] &= ~(1 << j);
+}
+
+int incFreeInodes(int dev) {
+	char buf[BLKSIZE];
+
+	getblock(dev, SUPERBLOCK, buf);
+	sp = (SUPER *)buf;
+	sp->s_free_inodes_count++;
+	putblock(dev, SUPERBLOCK, buf);
+
+	getblock(dev, GDBLOCK, buf);
+	gp = (GD *)buf;
+
+	gp->bg_free_inodes_count++;
+	putblock(dev, GDBLOCK, buf);
+
+}
+
+int incFreeBlocks(int dev) {
+	char buf[BLKSIZE];
+
+	getblock(dev, SUPERBLOCK, buf);
+	sp = (SUPER *)buf;
+	sp->s_free_blocks_count++;
+	putblock(dev, SUPERBLOCK, buf);
+
+	getblock(dev, GDBLOCK, buf);
+	gp = (GD *)buf;
+
+	gp->bg_free_blocks_count++;
+	putblock(dev, GDBLOCK, buf);
 }
 
 int decFreeInodes(int dev) {
@@ -79,19 +111,20 @@ int ialloc(int dev) {
 }
 
 //this will allocate a new block inside a current inode
-int balloc(int dev) {
+int balloc(MINODE *mip) {
 	int i;
 	char buf[BLKSIZE];
 
-	getblock(dev, bmap, buf);
+	getblock(mip->dev, bmap, buf);
 
 	for (i = 0; i < nblocks; i++) {
 		if(test_bit(buf, i) == 0) {
 			set_bit(buf, i);
-			decFreeBlocks(dev);
+			decFreeBlocks(mip->dev);
 			nblocks--;
+			mip->inode.i_blocks++;
 
-			putblock(dev, bmap, buf);
+			putblock(mip->dev, bmap, buf);
 			return i+1;
 		}
 	}
@@ -107,7 +140,8 @@ int idealloc(int dev, int ino) {
 	getblock(dev, imap, buf);
 
 	clr_bit(buf, ino);
-	decFreeInodes(dev);
+	incFreeInodes(dev);
+
 
 	putblock(dev, imap, buf);
 	ninodes++;
@@ -116,15 +150,17 @@ int idealloc(int dev, int ino) {
 }
 
 //this will deallocate a BLOCK, bno
-int bdealloc(int dev, int bno) {
+int bdealloc(MINODE *mip, int bno) {
 	char buf[BLKSIZE];
 
-	getblock(dev, bmap, buf);
+	getblock(mip->dev, bmap, buf);
 
 	clr_bit(buf, bno);
-	decFreeBlocks(dev);
+	incFreeBlocks(mip->dev);
 
-	putblock(dev, bmap, buf);
+	mip->inode.i_blocks--;
+
+	putblock(mip->dev, bmap, buf);
 	nblocks++;
 
 }

@@ -2,10 +2,9 @@
 #define LINK_H
 
 #include "structs.h"
-#include "create.h"
-#include "mkdir.h"
+#include "util.h"
+#include "dealloc.h"
 
-#define LINK_MODE 0xA1FF
 
 int _link(char *source) {
 	MINODE *mip, *sip;
@@ -73,7 +72,6 @@ int _link(char *source) {
 	iput(mip);
 	iput(sip);
 
-	//memory management shi
 	
 }
 
@@ -143,6 +141,5 @@ int _symlink(char *source) {
 
 	free(dest);
 }
-
 
 #endif

@@ -2,10 +2,15 @@
 #define BINARY_H
 
 #include "util.h"
-#include "create.h"
+#include "structs.h"
 #include "ls.h"
+#include "mkdir.h"
+#include "create.h"
 #include "remove.h"
 #include "link.h"
+#include "../fileio/open.h"
+#include "../fileio/readwrite.h"
+#include "../fileio/writebinary.h"
 
 
 int destruct() {
@@ -13,7 +18,6 @@ int destruct() {
 	iput (P1->cwd);
 	iput (root);
 }
-
 
 //initialize everything
 
@@ -230,7 +234,8 @@ int _stat(char *file) {
 int menu(char *name) {
 	printf("[ls][cd][pwd]\n"
 		"[mkdir][create][touch][link][symlink]\n"
-		"[rmdir][rm][unlink]\n");
+		"[rmdir][rm][unlink]\n"
+		"[cat][cp][mv]\n");
 }
 
 int quit(char *name) {
@@ -241,7 +246,7 @@ int quit(char *name) {
 int (*func[32]) (char *name) = {init, mount_root, _ls, _cd, _pwd,
 								_mkdir, _creat, _rmdir, _link, _unlink,
 								_rm, _symlink,_chmod, _chown, _stat,
-								_touch,0,0,0,0,
+								_touch,_cat,_cp,_mv,0,
 								0,0,0,0,0,
 								0,0,0,0,0,
 								quit, menu};

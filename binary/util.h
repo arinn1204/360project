@@ -2,7 +2,6 @@
 #define UTIL_H
 
 #include "structs.h"
-#include "dealloc.h"
 
 int getblock(int dev, int block, char buf[]) {
 	lseek(dev, (long)block*BLKSIZE, 0);
@@ -19,7 +18,7 @@ char *tokenize(char *pathname, char *delim) {
 	int i, count = 0;
 	char *token, temp[256];
 
-	if(pathname[0] == 0) return; 
+	if(pathname[0] == 0) return 0; 
 	len = strlen(pathname) - 1;
 
 
@@ -32,7 +31,7 @@ char *tokenize(char *pathname, char *delim) {
 		names = calloc(2, 1);
 		names[0] = calloc(strlen(temp) + 1, 1);
 		strcpy(*names, temp);
-		return;
+		return 0;
 	};
 
 	names = calloc(nameCount + 1, 1);
@@ -263,39 +262,40 @@ int fixPath(char **name) {
 	return 1;
 }
 
-int truncateI(INODE *inode, int dev) {
+int truncateI(MINODE *mip) {
 	int i, j, k;
 	char buf[BLKSIZE], buf1[BLKSIZE];
 	int *block, *doubleB;
 
-	for(i = 0; i < 15; i++) {
+	ip = &mip->inode;
+
+	for(i = 0; i < 15 && mip->inode.i_blocks > 0; i++) {
 		if(ip->i_block[i] == 0) break;
 		if (i < 12) {
-			bdealloc(dev, inode->i_block[i]);
+			bdealloc(mip, ip->i_block[i]);
 		}
 		else if (i == 12) {
-			getblock(dev, ip->i_block[i], buf);
+			getblock(mip->dev, ip->i_block[i], buf);
 			block = (int *)buf;
-			for(j = 0; j < 256; j++) {
+			for(j = 0; j < 256 && mip->inode.i_blocks > 0; j++) {
 				if( *(block + j) == 0 ) break;
-				bdealloc(dev, *(block + j) );
+				bdealloc(mip, *(block + j) );
 			}
 		}
 		else if (i == 13) {
-			getblock(dev, ip->i_block[i], buf);
+			getblock(mip->dev, ip->i_block[i], buf);
 			doubleB = (int *)buf;
-			for (j = 0; j < 256; j++) {
+			for (j = 0; j < 256 && mip->inode.i_blocks > 0; j++) {
 				if( *(doubleB + j) == 0 ) break;
-				getblock(dev, *(doubleB + j), buf1);
+				getblock(mip->dev, *(doubleB + j), buf1);
 				block = (int *)buf1;
-				for(k = 0; k < 256; k++) {
+				for(k = 0; k < 256 && mip->inode.i_blocks > 0; k++) {
 					if( *(block + k) == 0 ) break;
-					bdealloc(dev, *(block + k) );
+					bdealloc(mip, *(block + k) );
 				}
 			}
 		}
 	}
 }
-
 
 #endif

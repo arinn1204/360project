@@ -1,8 +1,6 @@
 #ifndef CREATE_H
 #define CREATE_H
 
-#define FILE_PERMISSION 0x81A4
-
 #include "mkdir.h"
 
 int mycreate(MINODE *pip, char *name) {
@@ -149,8 +147,5 @@ int _touch(char *name) {
 	return 1;
 
 }
-
-
-
 
 #endif

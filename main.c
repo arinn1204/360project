@@ -21,7 +21,9 @@ int findCMD(char *command) {
 		else if (!strncmp(command, "chmod", 5))			op = 12;
 		else if (!strncmp(command, "chown", 5))			op = 13;
 		else if (!strncmp(command, "stat", 4))			op = 14;
-		else if (!strncmp(command, "touch", 5))			op = 15; 
+		else if (!strncmp(command, "touch", 5))			op = 15;
+		else if (!strncmp(command, "cat", 3))			op = 16;
+		else if (!strncmp(command, "cp", 3))			op = 17;
 		else if (!strncmp(command, "quit", 4))			op = 30;
 		else if (!strncmp(command, "menu", 4))			op = 31;
 		else {
@@ -66,7 +68,6 @@ int main(int argc, char *argv[], char *env[]) {
 		bzero(pathname, 64);
 
 	}
-
 
 	return 0;
 }

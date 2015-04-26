@@ -1,6 +1,18 @@
 #ifndef STRUCTS_H
 #define STRUCTS_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <fcntl.h>
+#include <ext2fs/ext2_fs.h>
+#include <libgen.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <time.h>
+
+
+
 #define BLKSIZE 1024
 
 //Block Numbers for EXT2
@@ -17,6 +29,12 @@
 #define DIR_MODE(z) (z & 0xF000) == 0x4000
 #define FILE_MODE(z) (z & 0xF000) == 0x8000
 #define LINK(z) (z & 0xF000) == 0xA000
+
+//Default link permissions (1010000111111111)
+#define LINK_MODE 0xA1FF
+
+//Default File permissions (1000000110100100)
+#define FILE_PERMISSION 0x81A4
 
 
 //Mailmans Algorithm
@@ -35,17 +53,6 @@
 #define NPROC		 10
 #define NFD			 10
 #define NOFT		100
-
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <fcntl.h>
-#include <ext2fs/ext2_fs.h>
-#include <libgen.h>
-#include <unistd.h>
-#include <sys/types.h>
-
 
 
 typedef struct ext2_group_desc GD;
@@ -104,14 +111,13 @@ typedef short unsigned int u16;
 typedef unsigned int u32;
 typedef unsigned long int u64;
 
-
 //The MINODE structures
 MINODE minode[NMINODES], *root;
 
 
 char **names; //array of strings for the whole path
 //int name[64]; 		//array of pointers to the address of the strings
-int nameCount = -1;		//number of items in the arrays
+int nameCount;		//number of items in the arrays
 /*
 	inodeTable  = The inode start block
 	imap 	    = shows all of the inodes in the FS
@@ -120,7 +126,7 @@ int nameCount = -1;		//number of items in the arrays
 	nblocks		= Number of blocks available
 
 */
-int inodeTable = -1, imap = 0, bmap = 0, ninodes = 0, nblocks = 0;
+int inodeTable, imap, bmap, ninodes, nblocks ;
 
 //This is for the descriptor
 int fd;

@@ -56,7 +56,7 @@ int _open(char *name, char *mode) {
 	}
 
 	if(name[0] != '/') fixPath(&name);
-	mino = getino(running->cwd->dev, name);
+	mino = getino(&running->cwd->dev, name);
 	if(mino == 0) {
 		printf("%s is not found.\n", name);
 		return -1;

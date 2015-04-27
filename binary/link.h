@@ -28,7 +28,7 @@ int _link(char *source) {
 	strcpy(destParent, parameter);
 
 
-	fino = getino(running->cwd->dev, source);
+	fino = getino(&running->cwd->dev, source);
 	if (fino == 0) {
 		printf("%s was not found.\n", source);
 		return -1;
@@ -43,7 +43,7 @@ int _link(char *source) {
 	}
 
 	if(destParent[0] != '/') fixPath(&destParent);
-	sino = getino(mip->dev, destParent);
+	sino = getino(&mip->dev, destParent);
 	if(sino != 0) {
 		printf("%s already exists\n", destParent);
 		return -1;
@@ -51,7 +51,7 @@ int _link(char *source) {
 
 
 	destParent = dirname(destParent); //gets the parent of the destChild
-	sino = getino(mip->dev, destParent);
+	sino = getino(&mip->dev, destParent);
 	if(sino == 0) {
 		printf("%s does not exist or it is not on the same device as %s\n.",
 			destParent, source);
@@ -100,7 +100,7 @@ int _symlink(char *source) {
 	strcpy(parameter, param);
 	free(param);
 
-	fino = getino(running->cwd->dev, source);
+	fino = getino(&running->cwd->dev, source);
 
 	if (fino == 0) {
 		printf("%s does not exist\n", source);
@@ -115,7 +115,7 @@ int _symlink(char *source) {
 
 	dest = dirname(dest);
 
-	sino = getino(mip->dev, dest);
+	sino = getino(&mip->dev, dest);
 	if (sino == 0) {
 		printf("%s does not exist\n", dest);
 		return -1;
@@ -127,7 +127,7 @@ int _symlink(char *source) {
 		return -1;
 	}
 
-	sino = getino(mip->dev, parameter);
+	sino = getino(&mip->dev, parameter);
 	sip = iget(mip->dev, sino);
 
 	sip->inode.i_mode = LINK_MODE;

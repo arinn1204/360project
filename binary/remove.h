@@ -130,7 +130,7 @@ int _rmdir(char *name) {
 	strcpy(tname, name);
 	if(*name != '/') fixPath(&tname);
 
-	ino = getino(running->cwd->dev, tname);
+	ino = getino(&running->cwd->dev, tname);
 	if(ino == 0) {
 		printf("%s was not found.\n", name);
 		return -1;
@@ -208,7 +208,7 @@ int _rmdir(char *name) {
 
 	pname = dirname(pname);
 
-	pino = getino(running->cwd->dev, pname);
+	pino = getino(&running->cwd->dev, pname);
 	if(pino == 0) {
 		printf("%s does not exist\n", pname);
 		return -1;
@@ -240,7 +240,7 @@ int _unlink(char *name) {
 
 
 	fixPath(&name);
-	mino = getino(running->cwd->dev, name);
+	mino = getino(&running->cwd->dev, name);
 
 	if (mino == 0) {
 		printf("%s does not exist\n", name);
@@ -279,7 +279,7 @@ int _unlink(char *name) {
 	parentName = dirname(name);
 
 
-	pino = getino(mip->dev, parentName);
+	pino = getino(&mip->dev, parentName);
 
 	if(pino == 0) {
 		printf("%s does not exist\n", parentName);

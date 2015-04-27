@@ -71,13 +71,13 @@ int search(MINODE *mip, char *name, int dev) {
 
 }
 
-int getino(int dev, char *pathname) {
+int getino(int *dev, char *pathname) {
 	MINODE *mp = (MINODE *)malloc( sizeof(MINODE) );
 	int i, inumber;
 	char buf[BLKSIZE], *name;
 
 
-	getblock(dev, inodeTable, buf);
+	getblock(*dev, inodeTable, buf);
 
 	if( strncmp(pathname, "/", strlen(pathname) - 1) == 0) {
 		return 2;
@@ -88,10 +88,10 @@ int getino(int dev, char *pathname) {
 	ip = (INODE *)buf + 1;
 	mp->inode = *ip;
 	for (i=0; i < nameCount; i++) {
-		inumber = search(mp,*(names+i), dev);
-		if(inumber == 0) { /*printf( "%s was not found!\n", *(names+i) );*/ return 0; }
+		inumber = search(mp,*(names+i), *dev);
+		if(inumber == 0) { return 0; }
 		bzero(buf, BLKSIZE);
-		getblock(dev, INUMBER(inumber-1, inodeTable), buf);
+		getblock(*dev, INUMBER(inumber-1, inodeTable), buf);
 		ip = (INODE *)buf + OFFSET(inumber);
 		mp->inode = *ip;
 	} //end of for loop

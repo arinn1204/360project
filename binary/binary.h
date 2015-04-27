@@ -11,6 +11,8 @@
 #include "../fileio/open.h"
 #include "../fileio/readwrite.h"
 #include "../fileio/writebinary.h"
+#include "../mountumount/mount.h"
+#include "../mountumount/umount.h"
 
 
 int destruct() {
@@ -134,7 +136,7 @@ int _cd(char *name) {
 		//relative path
 		//strcpy(path, name);
 		fixPath(&name);
-		ino = getino(fd, name);
+		ino = getino(&running->cwd->dev, name);
 		if (ino == 0) {
 			printf("%s was not found.\n", name);
 			return -1;
@@ -145,14 +147,14 @@ int _cd(char *name) {
 		path = calloc(strlen(name) + 1, 1);
 		flag = 1;
 		strcpy(path, name);
-		ino = getino(fd, path);
+		ino = getino(&running->cwd->dev, path);
 		if (ino == 0) {
 			printf("%s was not found.\n");
 			return -1;
 		}
 	}
 
-	mip = iget(fd, ino);
+	mip = iget(running->cwd->dev, ino);
 	mode = mip->inode.i_mode;
 
 	if ( ! DIR_MODE(mode) ) {
@@ -246,8 +248,8 @@ int quit(char *name) {
 int (*func[32]) (char *name) = {init, mount_root, _ls, _cd, _pwd,
 								_mkdir, _creat, _rmdir, _link, _unlink,
 								_rm, _symlink,_chmod, _chown, _stat,
-								_touch,_cat,_cp,_mv,0,
-								0,0,0,0,0,
+								_touch,_cat,_cp,_mv,mount,
+								umount,0,0,0,0,
 								0,0,0,0,0,
 								quit, menu};
 

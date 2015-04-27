@@ -13,7 +13,7 @@ int _cat(char *name) {
 		return -1;
 	}
 	fixPath(&name);
-	ino = getino(running->cwd->dev, name);
+	ino = getino(&running->cwd->dev, name);
 
 	if (ino == 0) {
 		printf("%s does not exist\n");
@@ -66,14 +66,14 @@ int _cp(char *name) {
 	if (*name != '/') fixPath(&name);
 	if (*parameter != '/') fixPath(&temp);
 
-	fino = getino(running->cwd->dev, name);
+	fino = getino(&running->cwd->dev, name);
 
 	if (fino == 0) {
 		printf("%s does not exist.\n", name);
 		return -1;
 	}
 
-	sino = getino(running->cwd->dev, temp);
+	sino = getino(&running->cwd->dev, temp);
 	//creates the file if it does not exist already
 	if (sino == 0) {
 		_creat(temp);

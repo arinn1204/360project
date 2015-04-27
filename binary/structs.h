@@ -111,9 +111,16 @@ typedef short unsigned int u16;
 typedef unsigned int u32;
 typedef unsigned long int u64;
 
-//The MINODE structures
+//The user defined structs/////////////////////////////
+
+//Minode structs
 MINODE minode[NMINODES], *root;
 
+//The three processes that will be running
+PROC *P0, *P1, *running;
+
+//The mount array
+MOUNT MT[NMOUNT];
 
 char **names; //array of strings for the whole path
 //int name[64]; 		//array of pointers to the address of the strings
@@ -128,13 +135,8 @@ int nameCount;		//number of items in the arrays
 */
 int inodeTable, imap, bmap, ninodes, nblocks ;
 
-//This is for the descriptor
+//This is for the root device number (should be 3)
 int fd;
-
-
-//The three processes that will be running
-PROC *P0, *P1, *running;
-
 
 char pathname[64], parameter[64], cmd[32];
 

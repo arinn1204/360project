@@ -109,7 +109,7 @@ int _ls(char *name) {
    //no case needed if absolute path is already given.
 
 
-   ino = getino(fd, name);
+   ino = getino(&running->cwd->dev, name);
    if (ino == 0) {
    	printf("%s was not found.\n");
    	return 0;

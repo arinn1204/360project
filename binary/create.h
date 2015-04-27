@@ -56,7 +56,7 @@ int _creat(char *name) {
 	strcpy(pname, name);
 	pname = dirname(pname);
 
-	pino = getino(running->cwd->dev, pname);
+	pino = getino(&running->cwd->dev, pname);
 	if (pino == 0) {
 		printf("%s was not found.\n", pname);
 		return 0;
@@ -69,7 +69,7 @@ int _creat(char *name) {
 		return -1;
 	}
 
-	if ( getino(pip->dev, name) ) {
+	if ( getino(&pip->dev, name) ) {
 		printf("Cannot create file. File already exists\n");
 		iput(pip);
 		return -1;
@@ -115,7 +115,7 @@ int _touch(char *name) {
 	strcpy(pname, name);
 	pname = dirname(pname);
 
-	pino = getino(running->cwd->dev, pname);
+	pino = getino(&running->cwd->dev, pname);
 	if (pino == 0) {
 		printf("%s was not found.\n", pname);
 		return -1;
@@ -128,7 +128,7 @@ int _touch(char *name) {
 		return -1;
 	}
 
-	if ( getino(pip->dev, name) == 0 ) {
+	if ( getino(&pip->dev, name) == 0 ) {
 		_creat(name);
 		iput(pip);
 	}

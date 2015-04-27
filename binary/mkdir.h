@@ -134,7 +134,7 @@ int _mkdir(char *name) {
 	dirname(pname);
 	name = basename(name);
 
-	pino = getino(running->cwd->dev, pname);
+	pino = getino(&running->cwd->dev, pname);
 	if(pino == 0) {
 		printf("%s was not found.\n", pname);
 		return 0;
@@ -146,7 +146,7 @@ int _mkdir(char *name) {
 		return -1;
 	}
 
-	if ( getino(pip->dev, name) ) {
+	if ( getino(&pip->dev, name) ) {
 		printf("Cannot create dir, already exists.\n");
 		return -1;
 	}

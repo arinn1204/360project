@@ -114,7 +114,7 @@ int rm_child(MINODE *pip, char *name) {
 }
 
 int _rmdir(char *name) {
-	int ino, pino, cino, i, flag = 0;
+	int ino, pino, cino, i, flag = 0, newdev = running->cwd->dev;
 	MINODE *mip, *pip;
 	u16 mode;
 	char buf[BLKSIZE], *tname, *pname, c, *cp;
@@ -130,12 +130,12 @@ int _rmdir(char *name) {
 	strcpy(tname, name);
 	if(*name != '/') fixPath(&tname);
 
-	ino = getino(&running->cwd->dev, tname);
+	ino = getino(&newdev, tname);
 	if(ino == 0) {
 		printf("%s was not found.\n", name);
 		return -1;
 	}
-	mip = iget(running->cwd->dev, ino);
+	mip = iget(newdev, ino);
 	mode = mip->inode.i_mode;
 
 	//checking to see if removal is possible
@@ -208,13 +208,13 @@ int _rmdir(char *name) {
 
 	pname = dirname(pname);
 
-	pino = getino(&running->cwd->dev, pname);
+	pino = getino(&newdev, pname);
 	if(pino == 0) {
 		printf("%s does not exist\n", pname);
 		return -1;
 	}
 
-	pip = iget(running->cwd->dev, pino);
+	pip = iget(newdev, pino);
 	name = basename(name);
 
 	rm_child(pip, name);
@@ -228,7 +228,7 @@ int _rmdir(char *name) {
 }
 
 int _unlink(char *name) {
-	int mino, pino, temp;
+	int mino, pino, temp, newdev = running->cwd->dev;
 	MINODE *mip, *pip;
 	char *childName, *parentName, *ct;
 	u16 mode;
@@ -239,18 +239,16 @@ int _unlink(char *name) {
 	}
 
 
-	fixPath(&name);
-	mino = getino(&running->cwd->dev, name);
+	if(*name != '/') fixPath(&name);
+	mino = getino(&newdev, name);
 
 	if (mino == 0) {
 		printf("%s does not exist\n", name);
 		return -1;
 	}
 
-	mip = iget(running->cwd->dev, mino);
+	mip = iget(newdev, mino);
 	ip = &mip->inode;
-
-	ip->i_links_count--;
 
 	mode = ip->i_mode;
 
@@ -268,11 +266,16 @@ int _unlink(char *name) {
 	if ( LINK(mode) ) {
 		idealloc(mip->dev, mino);
 	}
-	else if (ip->i_links_count == 0) {
+	else if (ip->i_links_count == 1) {
 		//need to remove all datablocks, function found in util.h
+		ip->i_links_count--;
 		truncateI(mip);
 		idealloc(mip->dev, mino);
 	}
+	else {
+		ip->i_links_count--;
+	}
+
 	ct = (char *)calloc(strlen(name) + 1, 1);
 	strcpy(ct, name);
 	childName = basename(ct);

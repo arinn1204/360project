@@ -46,64 +46,28 @@ char *tokenize(char *pathname, char *delim) {
 
 }
 
-int search(MINODE *mip, char *name, int dev) {
-	char c, buf[BLKSIZE], *cp;
-	int ret = 0;
-	getblock(dev, (mip->inode).i_block[0], buf);
-	dp = (DIR *)buf;
-	cp = buf;
-
-	while (cp < buf + BLKSIZE) {
-		c = dp->name[dp->name_len];
-		dp->name[dp->name_len] = 0;
-		if(!strcmp(dp->name, name)) {
-			ret = dp->inode;
-			dp->name[dp->name_len] = c;
-			break;
-		}
-		dp->name[dp->name_len] = c;
-		cp += dp->rec_len;
-		dp = (DIR *)cp;
+int iput(MINODE *mip) {
+	char buf[BLKSIZE], *location;
+	mip->refcount--;
+	if(mip->refcount > 0) return 0;
+	if(mip->dirty == 0) return 0;
+	else { //the block is dirty (i.e needs to be changed)
+			//this is done by reading the block, changing the information
+			//then putting the block back to disk
+		getblock(mip->dev, INUMBER(mip->ino, inodeTable), buf);
+		location = buf + OFFSET(mip->ino) * 128;
+		memcpy(location, &(mip->inode), 128);
+		putblock(mip->dev, INUMBER(mip->ino, inodeTable), buf);
 	}
-
-	return ret;
-
 
 }
 
-int getino(int *dev, char *pathname) {
-	MINODE *mp = (MINODE *)malloc( sizeof(MINODE) );
-	int i, inumber;
-	char buf[BLKSIZE], *name;
-
-
-	getblock(*dev, inodeTable, buf);
-
-	if( strncmp(pathname, "/", strlen(pathname) - 1) == 0) {
-		return 2;
-	}
-	name = (char *)calloc(strlen(pathname) + 1, 1);
-	strcpy(name, pathname);
-	tokenize(name, "/");
-	ip = (INODE *)buf + 1;
-	mp->inode = *ip;
-	for (i=0; i < nameCount; i++) {
-		inumber = search(mp,*(names+i), *dev);
-		if(inumber == 0) { return 0; }
-		bzero(buf, BLKSIZE);
-		getblock(*dev, INUMBER(inumber-1, inodeTable), buf);
-		ip = (INODE *)buf + OFFSET(inumber);
-		mp->inode = *ip;
-	} //end of for loop
-	free(mp); free(name);
-	return inumber;
-}
 
 MINODE *iget(int dev, int ino) {
 	int i;
 	char buf[BLKSIZE];
 	for (i = 0; i < NMINODES; i++) {
-		if(minode[i].ino == ino) {
+		if(minode[i].ino == ino && minode[i].dev == dev) {
 			minode[i].refcount++;
 			return &minode[i];
 		}
@@ -123,21 +87,69 @@ MINODE *iget(int dev, int ino) {
 	printf("There is no more space available!\n");
 }
 
-int iput(MINODE *mip) {
-	char buf[BLKSIZE], *location;
-	mip->refcount--;
-	if(mip->refcount > 0) return 0;
-	if(mip->dirty == 0) return 0;
-	else { //the block is dirty (i.e needs to be changed)
-			//this is done by reading the block, changing the information
-			//then putting the block back to disk
-		getblock(mip->dev, INUMBER(mip->ino, inodeTable), buf);
-		location = buf + OFFSET(mip->ino) * 128;
-		memcpy(location, &(mip->inode), 128);
-		putblock(mip->dev, INUMBER(mip->ino, inodeTable), buf);
+
+int search(INODE *mip, char *name, int dev) {
+	char c, buf[BLKSIZE], *cp;
+	int ret = 0;
+	getblock(dev, mip->i_block[0], buf);
+	dp = (DIR *)buf;
+	cp = buf;
+
+	while (cp < buf + BLKSIZE) {
+		c = dp->name[dp->name_len];
+		dp->name[dp->name_len] = 0;
+		if( !strcmp(dp->name, name) ) {
+			ret = dp->inode;
+			dp->name[dp->name_len] = c;
+			break;
+		}
+		dp->name[dp->name_len] = c;
+		cp += dp->rec_len;
+		dp = (DIR *)cp;
 	}
 
+	return ret;
+
+
 }
+
+int getino(int *dev, char *pathname) {
+	MINODE *mip, *tempMIP;
+	int i, inumber, *newdev;
+	char buf[BLKSIZE], *name;
+
+
+	getblock(*dev, inodeTable, buf);
+
+	if( strncmp(pathname, "/", strlen(pathname) - 1) == 0) {
+		return 2;
+	}
+
+	name = (char *)calloc(strlen(pathname) + 1, 1);
+	strcpy(name, pathname);
+	tokenize(name, "/");
+	ip = (INODE *)buf + 1;
+	for (i=0; i < nameCount; i++) {
+		inumber = search(ip, *(names+i), *dev);
+		if(inumber == 0) return 0;
+
+		tempMIP = iget(*dev, inumber);
+		if(tempMIP->mounted == 1) {
+			newdev = &tempMIP->mountptr->dev;
+			*dev = *newdev;
+			inumber = 2;
+		}
+		iput(tempMIP);
+
+
+		bzero(buf, BLKSIZE);
+		getblock(*dev, INUMBER(inumber-1, inodeTable), buf);
+		ip = (INODE *)buf + OFFSET(inumber);
+	} //end of for loop
+	free(name);
+	return inumber;
+}
+
 
 int findmyname(MINODE *parent, int myino, char **myname) {
 	char buf[BLKSIZE], c, temp[256];

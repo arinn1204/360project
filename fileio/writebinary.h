@@ -5,7 +5,7 @@
 #include "readwrite.h"
 
 int _cat(char *name) {
-	int ino, dev, readBytes, i = 0;
+	int ino, dev, readBytes, i = 0, newdev = running->cwd->dev;
 	char buf[BLKSIZE];
 	//name is filename
 	if(*name == 0) {
@@ -13,7 +13,7 @@ int _cat(char *name) {
 		return -1;
 	}
 	fixPath(&name);
-	ino = getino(&running->cwd->dev, name);
+	ino = getino(&newdev, name);
 
 	if (ino == 0) {
 		printf("%s does not exist\n");
@@ -46,7 +46,7 @@ int _cp(char *name) {
 
 	char *temp;
 	char buf[BLKSIZE];
-	int des, source, fino, sino;
+	int des, source, fino, sino, newdev = running->cwd->dev;
 	int bytes;
 
 
@@ -66,14 +66,14 @@ int _cp(char *name) {
 	if (*name != '/') fixPath(&name);
 	if (*parameter != '/') fixPath(&temp);
 
-	fino = getino(&running->cwd->dev, name);
+	fino = getino(&newdev, name);
 
 	if (fino == 0) {
 		printf("%s does not exist.\n", name);
 		return -1;
 	}
 
-	sino = getino(&running->cwd->dev, temp);
+	sino = getino(&newdev, temp);
 	//creates the file if it does not exist already
 	if (sino == 0) {
 		_creat(temp);
@@ -93,7 +93,69 @@ int _cp(char *name) {
 }
 
 int _mv(char *name) {
-	
+	int dev = running->cwd->dev, fino, sino, exist = 1;
+	MINODE *mip, *sip;
+	char *temp, *parent;
+	//name == source
+	//parameter == destination
+
+	if (*name == 0) {
+		printf("No file to move\n");
+		return -1;
+	}
+	if (*parameter == 0) {
+		printf("No destination to move file\n");
+		return -1;
+	}
+
+	temp = (char *)calloc(sizeof(parameter) + 1,1);
+	parent = (char *)calloc(sizeof(parameter) + 1,1);
+	strcpy(temp, parameter);
+	strcpy(parent, parameter);
+	if (*name != '/') fixPath(&name);
+	if (*temp != '/') { fixPath(&temp); fixPath(&parent); }
+
+	strcpy(parameter, temp);
+	fino = getino(&dev, name);
+
+	if(fino == 0) {
+		printf("%s does not exist.\n");
+		return -1;
+	}
+	mip = iget(dev, fino);
+
+	sino = getino(&dev, temp);
+
+	if (sino == 0) {
+		exist = 0;
+	}
+
+	parent = dirname(parent);
+
+	sino = getino(&dev, parent);
+
+	if (sino == 0) {
+		printf("%s does not exist\n", parent);
+		return -1;
+	}
+
+	sip = iget(dev, sino);
+
+	if(sip->dev == mip->dev) {
+		if (exist) _rm(temp);
+		_link(name);
+		_rm(name);
+	}
+	else {
+		_cp(name);
+		_rm(name);
+	}
+
+
+
+	iput(sip);    iput(mip);
+	free(parent); free(temp);
+	return 0;
 }
 
 

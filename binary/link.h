@@ -9,11 +9,12 @@
 int _link(char *source) {
 	MINODE *mip, *sip;
 	char *destParent, *destChild;
-	int fino, sino;				//fino = first ino
-								//sino = second ino
+	int fino, sino, newdev;				//fino = first ino
+										//sino = second ino
+
+	newdev = running->cwd->dev;
 	u16 mode;
 
-	fixPath(&source);
 
 	if (*parameter == 0) {
 		printf("No destination.\n");
@@ -24,17 +25,19 @@ int _link(char *source) {
 		return -1;
 	}
 
+	if(*source != '/') fixPath(&source);
+
 	destParent = (char *)calloc(strlen(parameter) + 1, 1);
 	strcpy(destParent, parameter);
 
 
-	fino = getino(&running->cwd->dev, source);
+	fino = getino(&newdev, source);
 	if (fino == 0) {
 		printf("%s was not found.\n", source);
 		return -1;
 	}
 
-	mip = iget(running->cwd->dev, fino);
+	mip = iget(newdev, fino);
 	mode = mip->inode.i_mode;
 
 	if ( DIR_MODE(mode) ) {
@@ -66,7 +69,7 @@ int _link(char *source) {
 	entername(sip, fino, destChild);
 
 
-	mip->inode.i_links_count = 1;
+	mip->inode.i_links_count++;
 	mip->dirty = 1;
 	sip->dirty = 1;
 	iput(mip);
@@ -78,7 +81,7 @@ int _link(char *source) {
 int _symlink(char *source) {
 	MINODE *mip, *sip;
 	u16 mode;
-	int fino, sino;
+	int fino, sino, newdev = running->cwd->dev;
 	char *dest, *param;
 
 	if (*parameter == 0) {
@@ -100,14 +103,14 @@ int _symlink(char *source) {
 	strcpy(parameter, param);
 	free(param);
 
-	fino = getino(&running->cwd->dev, source);
+	fino = getino(&newdev, source);
 
 	if (fino == 0) {
 		printf("%s does not exist\n", source);
 		return -1;
 	}
 
-	mip = iget(running->cwd->dev, fino);
+	mip = iget(newdev, fino);
 
 
 	dest = (char *)calloc(strlen(parameter) + 1, 1);

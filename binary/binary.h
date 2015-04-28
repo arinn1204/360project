@@ -112,9 +112,9 @@ int mount_root(char *name) {
 }
 
 int _cd(char *name) {
-	int ino, child, parent;
+	int ino, child, parent, i, newdev = fd;
 	int flag = 0;
-	MINODE *mip;
+	MINODE *mip, *current;
 	char *path, *myname;
 	u16 mode;
 
@@ -131,12 +131,30 @@ int _cd(char *name) {
 	else if ( !strncmp("..", name, strlen(name)) ) {
 		findino(running->cwd, &child, &parent);
 		ino = parent;
+		// if (ino == 2) {
+		// 	//check to see if mounted
+		// 	if(running->cwd->dev != fd) {
+		// 		//device is mounted
+		// 		for (i = 0; i < NMOUNT; i++) {
+		// 			if (MT[i].dev == running->cwd->dev) {
+		// 				newdev = MT[i].mounted_inode->dev;
+		// 				running->cwd->dev = newdev;
+		// 				ino = MT[i].mounted_inode->ino;
+		// 				mip = iget(newdev, ino);
+		// 				findino(mip, &child, &parent);
+		// 				ino = parent;
+		// 				iput(mip);
+		// 				break;
+		// 			}
+		// 		}
+		// 	}
+		// }
 	}
 	else if (name[0] != '/') { 
 		//relative path
 		//strcpy(path, name);
 		fixPath(&name);
-		ino = getino(&running->cwd->dev, name);
+		ino = getino(&newdev, name);
 		if (ino == 0) {
 			printf("%s was not found.\n", name);
 			return -1;
@@ -147,23 +165,28 @@ int _cd(char *name) {
 		path = calloc(strlen(name) + 1, 1);
 		flag = 1;
 		strcpy(path, name);
-		ino = getino(&running->cwd->dev, path);
+		ino = getino(&newdev, path);
 		if (ino == 0) {
 			printf("%s was not found.\n");
 			return -1;
 		}
 	}
 
-	mip = iget(running->cwd->dev, ino);
+	mip = iget(newdev, ino);
 	mode = mip->inode.i_mode;
+
+	printf("Device: %d\nInode: %d\n", newdev, ino);
 
 	if ( ! DIR_MODE(mode) ) {
 		printf("%s is not a directory\n", path);
+		iput(mip);
 		if (flag) free(path);
 	}
 	else {
 		iput(running->cwd);
+		mip->dev = newdev;
 		running->cwd = mip;
+		//iput(mip);
 		if (flag) free(path);
 	}	
 	return 0;
@@ -180,6 +203,8 @@ int _pwd(char *name) {
 	MINODE *mp = iget(running->cwd->dev, running->cwd->ino);
 	MINODE *fp = mp;
 
+	printf("Current Device: %d\nCurrent Ino: %d\n\n", mp->dev, mp->ino);
+
 	//fp = child
 	//mp = parent
 
@@ -187,7 +212,17 @@ int _pwd(char *name) {
 		if (mp != fp) fp = mp;
 		findino(fp, &child, &parent);
 		mp = iget(fp->dev, parent);
-		if(fp->ino == 2) {
+		if (fp->ino == 2 && fp->dev != fd) {
+			for (i = 0; i < NMOUNT; i++) {
+				if (MT[i].dev == fp->dev) {
+					iput(mp);
+					mp = iget(MT[i].mounted_inode->dev,
+						MT[i].mounted_inode->ino);
+					fp = mp;
+				}
+			}
+		}
+		else if(fp->ino == 2 && fp->dev == fd) {
 			printf("/");
 			break;
 		}

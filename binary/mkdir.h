@@ -108,7 +108,7 @@ int mymkdir(MINODE *parent, char *dirName) {
 	memcpy(dp->name, "..", 2);
 
 
-	putblock(running->cwd->dev, bno, buf);
+	putblock(parent->dev, bno, buf);
 
 	entername(parent, ino, dirName);
 
@@ -116,7 +116,7 @@ int mymkdir(MINODE *parent, char *dirName) {
 }
 
 int _mkdir(char *name) {
-	int child, parent, cino, pino;
+	int child, parent, cino, pino, newdev = running->cwd->dev;
 	MINODE *cip, *pip;  //child inode ptr and parent inode ptr
 	char *pname; //parents name
 	u16 mode;
@@ -134,12 +134,12 @@ int _mkdir(char *name) {
 	dirname(pname);
 	name = basename(name);
 
-	pino = getino(&running->cwd->dev, pname);
+	pino = getino(&newdev, pname);
 	if(pino == 0) {
 		printf("%s was not found.\n", pname);
 		return 0;
 	}
-	pip = iget(running->cwd->dev, pino);
+	pip = iget(newdev, pino);
 	mode = pip->inode.i_mode;
 	if (! DIR_MODE(mode)) {
 		printf("%s is not a directory\n", pname);

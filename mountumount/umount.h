@@ -14,6 +14,7 @@ int umount(char *name) {
 	if( !isMounted(name, &index) ) {
 		printf("%s not mounted. Please mount %s in order to unmount %s\n",
 			name, name, name);
+		return -1;
 	}
 
 	for (i = 0; i < NMINODES; i++) {

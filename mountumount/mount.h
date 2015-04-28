@@ -31,7 +31,7 @@ void fillFields(MOUNT *mp) {
 
 }
 
-MOUNT *getMount(int dev, char *filesys, char *name, MINODE *mip) {
+MOUNT *setMount(int dev, char *filesys, char *name, MINODE **mip) {
 	int i;
 
 	for (i = 0; i < NMOUNT; i++) {
@@ -42,8 +42,8 @@ MOUNT *getMount(int dev, char *filesys, char *name, MINODE *mip) {
 			memcpy(MT[i].name, filesys, strlen(filesys) );
 			memcpy(MT[i].mount_name, name, strlen(name) );
 
-			MT[i].mounted_inode = (MINODE *)malloc( sizeof(mip) );
-			memcpy(MT[i].mounted_inode, mip, sizeof(mip) );
+			MT[i].mounted_inode = (MINODE *)malloc( sizeof(**mip) );
+			memcpy(MT[i].mounted_inode, *mip, sizeof(**mip) );
 			fillFields(&MT[i]);
 			return &MT[i];
 		}
@@ -72,7 +72,7 @@ int mount(char *name) {
 	u16 mode;
 	MOUNT *newMount;
 
-	if ( !*name && !*pathname) {
+	if ( !*name && !*parameter) {
 		//no parameters, print mount table
 		for (i = 0; i < NMOUNT; i++) {
 			if (MT[i].dev == 0) break;
@@ -90,16 +90,16 @@ int mount(char *name) {
 
 		return 0;
 	}
-	else if (*name == 0 && *pathname != 0) {
+	else if (*name == 0 && *parameter != 0) {
 		printf("No directory to mount on.\n");
 		return -1;
 	}
 
 
-	if (*name == '/') fixPath(&name);
+	//if (*name != '/') fixPath(&name);
 	temp = (char *)calloc(strlen(parameter) + 1, 1);
 	strcpy(temp, parameter);
-	if (*temp == '/') fixPath(&temp);
+	if (*temp != '/') fixPath(&temp);
 	strcpy(parameter, temp);
 
 	if (isMounted(name, &i) == -1) {
@@ -130,11 +130,11 @@ int mount(char *name) {
 		return -1;
 	}
 
-	newMount = getMount(dev, name, temp, mount_point);
-
 
 	mount_point->mountptr = (MOUNT *)malloc( sizeof(newMount) );
-	memcpy(mount_point->mountptr, newMount, sizeof(newMount) );
+	memcpy(mount_point->mountptr,
+		setMount(dev, name, temp, &mount_point)
+		, sizeof(MOUNT) );
 	mount_point->mounted = 1;
 	mount_point->dirty = 1;
 
